@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Verification</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .pass {
+            color: green;
+            font-weight: bold;
+        }
+
+        .fail {
+            color: red;
+            font-weight: bold;
+        }
+
+        pre {
+            background: #eee;
+            padding: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Verification Results</h1>
+
+    <div class="card">
+        <h2>1. Water Supply Model</h2>
+        <div id="water-result">Running...</div>
+    </div>
+
+    <div class="card">
+        <h2>2. Waste Disposal Model</h2>
+        <div id="waste-result">Running...</div>
+    </div>
+
+    <!-- Load Scripts -->
+    <script src="models/ModelStrategy.js"></script>
+    <script src="models/PowerModel.js"></script> <!-- Need for inheritance chain check if any -->
+    <script src="models/WaterModel.js"></script>
+    <script src="models/WasteModel.js"></script>
+
+    <script>
+        function runTests() {
+            try {
+                // --- Water Test ---
+                const waterModel = new WaterModel();
+                const waterInputs = {
+                    capacity: 1000,
+                    revenue: { unitPrice: 10, lossRate: 5 }
+                };
+                const waterParams = { degradationFactor: 1.0, escalationFactor: 1.0, days: 365 };
+                const waterRes = waterModel.calculateRevenue(waterInputs, 1, waterParams);
+                const waterExpected = 1000 * 365 * 0.95 * 10; // 3,467,500
+
+                const waterPass = Math.abs(waterRes.revenue - waterExpected) < 1;
+                document.getElementById('water-result').innerHTML = `
+                    <p>Status: <span class="${waterPass ? 'pass' : 'fail'}">${waterPass ? 'PASSED' : 'FAILED'}</span></p>
+                    <p>Expected: ${waterExpected.toLocaleString()}</p>
+                    <p>Got: ${waterRes.revenue.toLocaleString()}</p>
+                `;
+
+                // --- Waste Test ---
+                const wasteModel = new WasteModel();
+                const wasteInputs = {
+                    capacity: 50,
+                    revenue: { tippingFee: 500 }
+                };
+                const wasteParams = { degradationFactor: 1.0, escalationFactor: 1.0, days: 365 };
+                const wasteRes = wasteModel.calculateRevenue(wasteInputs, 1, wasteParams);
+                const wasteExpected = 50 * 365 * 500; // 9,125,000
+
+                const wastePass = Math.abs(wasteRes.revenue - wasteExpected) < 1;
+                document.getElementById('waste-result').innerHTML = `
+                    <p>Status: <span class="${wastePass ? 'pass' : 'fail'}">${wastePass ? 'PASSED' : 'FAILED'}</span></p>
+                    <p>Expected: ${wasteExpected.toLocaleString()}</p>
+                    <p>Got: ${wasteRes.revenue.toLocaleString()}</p>
+                `;
+
+            } catch (e) {
+                document.body.innerHTML += `<div class="card fail"><h3>Error</h3><pre>${e.message}\n${e.stack}</pre></div>`;
+            }
+        }
+
+        window.onload = runTests;
+    </script>
+</body>
+
+</html>

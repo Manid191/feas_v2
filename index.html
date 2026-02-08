@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Power Plant Feasibility</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Project Selection Modal -->
+    <div id="modal-starter" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-panel">
+            <h2 style="text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-wand-magic-sparkles"></i> Create
+                New Project</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Select the type of project you want to
+                analyze:</p>
+
+            <div class="project-type-grid">
+                <div class="project-card" onclick="window.app.createNewProject('POWER')">
+                    <div class="icon"><i class="fa-solid fa-bolt"></i></div>
+                    <h3>Power Plant</h3>
+                    <p>Biomass, Thermal, Gas</p>
+                </div>
+                <div class="project-card" onclick="window.app.createNewProject('SOLAR')">
+                    <div class="icon"><i class="fa-solid fa-sun"></i></div>
+                    <h3>Solar Cell</h3>
+                    <p>Solar Farm, Rooftop</p>
+                </div>
+                <div class="project-card" onclick="window.app.createNewProject('WATER')">
+                    <div class="icon"><i class="fa-solid fa-faucet"></i></div>
+                    <h3>Water Supply</h3>
+                    <p>Tap Water, Industrial Water</p>
+                </div>
+                <div class="project-card" onclick="window.app.createNewProject('WASTE')">
+                    <div class="icon"><i class="fa-solid fa-trash-can"></i></div>
+                    <h3>Waste Disposal</h3>
+                    <p>Landfill, Incinerator</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-secondary text-btn"
+                    onclick="document.getElementById('modal-starter').style.display='none'">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="top-navbar">
+            <div class="nav-brand">
+                <i class="fa-solid fa-bolt-lightning logo-icon"></i>
+                <span class="logo-text">Feasibility<span class="highlight">Pro</span></span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-view="inputs">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Parameters</span>
+                </a>
+                <a href="#" class="nav-item" data-view="personnel">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Personnel</span>
+                </a>
+                <a href="#" class="nav-item" data-view="detailed-opex">
+                    <i class="fa-solid fa-flask"></i>
+                    <span>Operation Cost (Variable)</span>
+                </a>
+                <a href="#" class="nav-item" data-view="admin-cost">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>Admin Cost (Fixed)</span>
+                </a>
+                <a href="#" class="nav-item" data-view="financials">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>Financials</span>
+                </a>
+                <a href="#" class="nav-item" data-view="simulation">
+                    <i class="fa-solid fa-flask"></i>
+                    <span>Simulation</span>
+                </a>
+                <a href="#" class="nav-item" data-view="report">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Report</span>
+                </a>
+            </nav>
+
+            <div class="nav-actions">
+                <div class="project-controls">
+                    <button class="btn btn-sm btn-primary"
+                        onclick="window.inputApps && window.inputApps.resetToDefaults()">
+                        <i class="fa-solid fa-plus"></i> New
+                    </button>
+                    <button class="btn btn-sm btn-secondary"
+                        onclick="window.inputApps && window.inputApps.exportScenario()">
+                        <i class="fa-solid fa-download"></i> Export
+                    </button>
+                    <button class="btn btn-sm btn-secondary" onclick="document.getElementById('topImportFile').click()">
+                        <i class="fa-solid fa-file-import"></i> Import
+                    </button>
+                    <input type="file" id="topImportFile" style="display:none"
+                        onchange="window.inputApps && window.inputApps.importScenario(this)" accept=".json">
+                </div>
+                <div class="user-profile-sm">
+                    <span class="user-avatar-sm">AD</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header-compact">
+                <h1 id="page-header">Dashboard</h1>
+                <p class="subtitle">Overview</p>
+            </div>
+
+            <div id="content-area" class="content-body">
+                <!-- Content will be injected here via JS -->
+                <div class="placeholder-state">
+                    <i class="fa-solid fa-chart-column"></i>
+                    <h2>Welcome to FeasibilityPro</h2>
+                    <p>Start by configuring your plant parameters.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Application Helper Scripts -->
+    <script src="storage.js"></script>
+    <script src="calculator.js"></script>
+    <script src="config.js?v=5.0"></script>
+    <script>
+        // Version Check
+        const currentVersion = '5.0';
+    </script>
+
+    <!-- Strategy Models -->
+    <script src="models/ModelStrategy.js"></script>
+    <script src="models/PowerModel.js"></script>
+    <script src="models/WaterModel.js"></script>
+    <script src="models/WasteModel.js"></script>
+
+    <script src="input_manager.js?v=5.1"></script>
+    <script src="dashboard.js?v=1.1"></script>
+    <script src="report_manager.js?v=1.1"></script>
+    <script src="personnel_manager.js"></script>
+    <script src="detailed_opex_manager.js"></script>
+    <script src="admin_cost_manager.js?v=3.2"></script>
+    <script src="financial_manager.js?v=1.1"></script>
+    <script src="simulation_manager.js?v=5.0"></script>
+
+    <!-- App Entry Point (Main Logic) -->
+    <script src="app.js?v=5.1"></script>
+
+    <!-- Diagnostics -->
+    <script>
+        window.addEventListener('load', () => {
+            const errors = [];
+            if (!window.AppConfig) errors.push('config.js failed to load');
+            if (!window.inputApps) errors.push('input_manager.js failed to load');
+            if (!window.app) errors.push('app.js failed to load');
+
+            if (errors.length > 0) {
+                const errDiv = document.createElement('div');
+                errDiv.style.position = 'fixed';
+                errDiv.style.bottom = '10px';
+                errDiv.style.right = '10px';
+                errDiv.style.background = 'red';
+                errDiv.style.color = 'white';
+                errDiv.style.padding = '20px';
+                errDiv.style.zIndex = '9999';
+                errDiv.innerHTML = '<h3>System Errors:</h3><ul>' + errors.map(e => '<li>' + e + '</li>').join('') + '</ul>';
+                document.body.appendChild(errDiv);
+            }
+        });
+    </script>
+</body>
+
+</html>
