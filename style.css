@@ -947,12 +947,15 @@ label { color: #334155; letter-spacing: 0.3px; }
 }
 
 .nav-links {
+    display: flex;
+    align-items: center;
     flex: 1 1 auto;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
     scrollbar-width: none;
+    padding: 0 6px;
 }
 
 .nav-links::-webkit-scrollbar {
@@ -963,6 +966,20 @@ label { color: #334155; letter-spacing: 0.3px; }
     flex: 0 0 auto;
     min-width: auto;
     margin-left: 8px;
+}
+
+.nav-item {
+    margin: 0 4px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+}
+
+.nav-item.active {
+    border-color: rgba(255, 255, 255, 0.38);
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .project-controls {
