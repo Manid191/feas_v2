@@ -816,6 +816,7 @@ class InputManager {
                         }
                         else if (e.type === 'expense_opex') {
                             if (e.mode === 'absolute') simOpexAbs += val;
+                            else if (e.mode === 'delta') simOpexAbs += val;
                             else if (e.mode === 'percent') simOpexPct += val;
                         }
                     }
