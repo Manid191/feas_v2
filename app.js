@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Export Button Logic
-    const exportBtn = document.querySelector('.btn-secondary');
+    const exportBtn = document.querySelector('[data-action="export-scenario"]');
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
             const data = {
@@ -211,7 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateHeader(viewName) {
     const titleMap = {
         'dashboard': { title: 'Dashboard', sub: 'Overview of your power plant feasibility study' },
-        'inputs': { title: 'Parameters', sub: 'Configure technical and financial assumptions' },
         'inputs': { title: 'Parameters', sub: 'Configure technical and financial assumptions' },
         'personnel': { title: 'Personnel Plan', sub: 'Manage headcount and salary costs' },
         'detailed-opex': { title: 'Variable Costs', sub: 'Manage Detailed OPEX (Chemicals, Maintenance, etc.)' },
