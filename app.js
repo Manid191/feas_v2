@@ -46,11 +46,22 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     };
 
-    // Auto-Save DISABLED per user request
-    // User does not want inputs saved between sessions
-    // window.autoSaveTrigger = () => {...};
-    // document.addEventListener('input', debounce(window.autoSaveTrigger, 1000));
-    // document.addEventListener('change', debounce(window.autoSaveTrigger, 1000));
+    // Auto-Save (debounced)
+    window.autoSaveTrigger = () => {
+        try {
+            const inputs = window.inputApps.getInputs();
+            const state = {
+                view: 'inputs',
+                lastModified: new Date().toISOString(),
+                inputs: inputs
+            };
+            StorageManager.saveProject(state);
+        } catch (err) {
+            // Ignore autosave attempts from non-input views where elements may not exist
+        }
+    };
+    document.addEventListener('input', debounce(window.autoSaveTrigger, 1000));
+    document.addEventListener('change', debounce(window.autoSaveTrigger, 1000));
 
     // Simple Navigation Handling
     const navItems = document.querySelectorAll('.nav-item');
@@ -185,27 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Export Button Logic
-    const exportBtn = document.querySelector('[data-action="export-scenario"]');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
-            const data = {
-                inputs: window.inputApps.getInputs(),
-                metadata: {
-                    version: '1.0',
-                    exportedAt: new Date().toISOString()
-                }
-            };
-
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "feasibility_project.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        });
-    }
 });
 
 function updateHeader(viewName) {
