@@ -976,7 +976,7 @@ class InputManager {
                     }
 
                     let freqMultiplier = 1;
-                    if (fType === 'daily') freqMultiplier = (inputs.daysPerYear || 334);
+                    if (fType === 'daily') freqMultiplier = days;
                     else if (fType === 'monthly') freqMultiplier = 12;
 
                     const annualCost = qty * price * freqMultiplier * inflationFactor;
@@ -1071,7 +1071,7 @@ class InputManager {
             equityCashFlows[year] = equityCF + yearLoanProceeds;
 
             costsArray[year] = yearOpex + annualDepreciation + interestExp;
-            energyArray[year] = yearTotalEnergy * degradationFactor;
+            energyArray[year] = yearTotalEnergy;
 
             // Update Loan Balance
             if (year <= loanTerm) {

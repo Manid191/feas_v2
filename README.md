@@ -20,6 +20,7 @@ A comprehensive, web-based tool for evaluating the financial feasibility of powe
 *   **Sensitivity Analysis**: (Beta) Automated sensitivity checks for Price and CAPEX.
 
 ### 🛠️ Usability
+*   **Renovated UI Format (v6)**: Modern gradient app shell, clearer navigation, and improved readability for forms/cards.
 *   **Interactive Dashboard**: Real-time charts and KPIs.
 *   **Auto-Save**: Project data persists in the browser (LocalStorage).
 *   **Report Generation**: Print-ready financial reports.
