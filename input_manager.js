@@ -469,6 +469,7 @@ class InputManager {
             // DOM is present, scrape it
             const cachedPersonnel = this.currentInputs.personnel || [];
             const cachedDetailedOpex = this.currentInputs.detailedOpex || [];
+            const cachedAdminItems = this.currentInputs.adminItems || [];
             this.currentInputs = {
                 modelType: this.currentInputs.modelType || 'POWER', // PRESERVE MODEL TYPE
                 productionCapacity: getValue('productionCapacity') || getValue('capacity'),
@@ -512,7 +513,8 @@ class InputManager {
 
                 personnel: cachedPersonnel,
                 personnelWelfarePercent: getValue('personnelWelfarePercent') || 0,
-                detailedOpex: cachedDetailedOpex
+                detailedOpex: cachedDetailedOpex,
+                adminItems: cachedAdminItems
             };
         }
 
