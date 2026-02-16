@@ -16,6 +16,7 @@ class InputManager {
             this.currentInputs = {
                 capacity: 10, projectYears: 25, powerFactor: 0.95, hoursPerDay: 24,
                 revenue: { peakRate: 4.5, peakHours: 13, offPeakRate: 2.6, escalation: 0, adderPrice: 0, adderYears: 7 },
+                initialEfficiency: 100,
                 degradation: 0.5,
                 capex: { construction: 20, machinery: 50, land: 10, sharePremium: 0, others: 0 },
                 finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, taxHoliday: 0 },
@@ -58,6 +59,13 @@ class InputManager {
                             <label>${labels.capacity}</label>
                             <input type="text" id="capacity" value="${fmt(this.currentInputs.capacity)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
+                        <div class="form-group">
+                            <label>Initial Efficiency (%)</label>
+                            <input type="text" id="initialEfficiency" value="${fmt(this.currentInputs.initialEfficiency || 100)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+
+                    <div class="row">
                         <div class="form-group">
                             <label>Efficiency / Loss (%)</label>
                              <input type="text" id="degradation" value="${fmt(this.currentInputs.degradation || this.currentInputs.revenue.lossRate || 0)}" onchange="inputApps.evaluateMathInput(this)">
@@ -474,6 +482,7 @@ class InputManager {
                 powerFactor: getValue('powerFactor'),
                 hoursPerDay: getValue('hoursPerDay'),
                 daysPerYear: getValue('daysPerYear') || 365,
+                initialEfficiency: getValue('initialEfficiency') || 100,
                 degradation: getValue('degradation'),
 
                 revenue: {
@@ -641,6 +650,7 @@ class InputManager {
             setVal('powerFactor', inputs.powerFactor);
             setVal('hoursPerDay', inputs.hoursPerDay);
             setVal('daysPerYear', inputs.daysPerYear);
+            setVal('initialEfficiency', inputs.initialEfficiency || 100);
             setVal('degradation', inputs.degradation);
 
             if (inputs.revenue) {
@@ -710,6 +720,7 @@ class InputManager {
 
         const revenueEscalation = (inputs.revenue.escalation || 0) / 100;
         const taxHoliday = inputs.finance.taxHoliday || 0;
+        const initialEfficiencyFactor = (inputs.initialEfficiency || 100) / 100;
         const degradationRate = (inputs.degradation || 0) / 100;
 
         // Adder Params
@@ -834,8 +845,8 @@ class InputManager {
             const escalationFactor = Math.pow(1 + revenueEscalation, year - 1);
             const inflationFactor = Math.pow(1 + simOpexInflation, year - 1);
 
-            // Degradation applies to Output/Efficiency
-            const degradationFactor = Math.pow(1 - degradationRate, year - 1);
+            // Year 1 starts at initialEfficiency and degrades each subsequent year
+            const degradationFactor = initialEfficiencyFactor * Math.pow(1 - degradationRate, year - 1);
             const personnelMultiplier = 1 + ((inputs.personnelWelfarePercent || 0) / 100);
 
             // Determine Model Logic
