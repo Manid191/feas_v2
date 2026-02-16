@@ -904,19 +904,23 @@ class InputManager {
             inputs.opex.forEach(item => {
                 let multiplier = 0;
                 const fType = item.freqType || 'yearly';
+                let escStartYear = 1;
 
                 if (fType === 'daily') multiplier = inputs.daysPerYear || 365;
                 else if (fType === 'monthly') multiplier = 12;
                 else if (fType === 'yearly') multiplier = 1;
                 else if (fType === 'every_n') {
                     const n = parseInt(item.customN) || 5;
+                    escStartYear = n;
                     if (year % n === 0) multiplier = 1;
                 } else if (fType === 'period') {
                     const s = parseInt(item.startYear) || 1;
                     const e = parseInt(item.endYear) || projectYears;
+                    escStartYear = s;
                     if (year >= s && year <= e) multiplier = 1;
                 } else {
                     const oldFreq = item.frequency || 1;
+                    escStartYear = oldFreq === 1 ? 1 : oldFreq;
                     if (oldFreq === 1 || year % oldFreq === 0) multiplier = 1;
                 }
 
@@ -932,7 +936,8 @@ class InputManager {
                     else if (item.type === 'percent_const_mach') baseCost = (item.value / 100) * ((inputs.capex.construction || 0) + (inputs.capex.machinery || 0));
 
                     baseCost *= qty;
-                    cost = baseCost * multiplier * inflationFactor;
+                    const itemInflationFactor = Math.pow(1 + simOpexInflation, Math.max(0, year - escStartYear));
+                    cost = baseCost * multiplier * itemInflationFactor;
                 }
 
                 yearOpex += cost;
