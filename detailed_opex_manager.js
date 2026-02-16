@@ -223,8 +223,18 @@ class DetailedOpexManager {
     updateState() {
         if (window.inputApps) {
             window.inputApps.currentInputs.detailedOpex = this.state;
-            // Also trigger re-render of linked items if reference changed? 
+            // Also trigger re-render of linked items if reference changed?
             // Render handles it naturally.
+
+            // Persist immediately so view switches/Calculate won't restore stale saved data
+            if (window.StorageManager && typeof window.StorageManager.saveProject === 'function') {
+                const state = {
+                    view: 'detailed-opex',
+                    lastModified: new Date().toISOString(),
+                    inputs: window.inputApps.getInputs()
+                };
+                window.StorageManager.saveProject(state);
+            }
         }
     }
 
