@@ -19,7 +19,7 @@ class InputManager {
                 initialEfficiency: 100,
                 degradation: 0.5,
                 capex: { construction: 20, machinery: 50, land: 10, sharePremium: 0, others: 0 },
-                finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, taxHoliday: 0 },
+                finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, discountRate: 7, taxHoliday: 0 },
                 personnel: []
             };
         }
@@ -170,6 +170,11 @@ class InputManager {
                             <label>Cost Inf %</label>
                             <input type="text" id="opexInflation" value="${fmt(this.currentInputs.finance.opexInflation)}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Discount Rate %</label>
+                        <input type="text" id="discountRate" value="${fmt(this.currentInputs.finance.discountRate ?? ((window.AppConfig?.constants?.discountRate || 0.07) * 100))}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
                     </div>
                     <div class="form-group">
                         <label>Tax Holiday (Yrs)</label>
@@ -513,6 +518,7 @@ class InputManager {
                     loanTerm: getValue('loanTerm'),
                     taxRate: getValue('taxRate'),
                     opexInflation: getValue('opexInflation'),
+                    discountRate: getValue('discountRate'),
                     taxHoliday: getValue('taxHoliday')
                 },
 
@@ -680,6 +686,7 @@ class InputManager {
                 setVal('loanTerm', inputs.finance.loanTerm);
                 setVal('taxRate', inputs.finance.taxRate);
                 setVal('opexInflation', inputs.finance.opexInflation);
+                setVal('discountRate', inputs.finance.discountRate ?? ((window.AppConfig?.constants?.discountRate || 0.07) * 100));
                 setVal('taxHoliday', inputs.finance.taxHoliday);
             }
 
@@ -693,7 +700,8 @@ class InputManager {
 
         // --- 1. Generate Parameters ---
         const projectYears = inputs.projectYears || window.AppConfig?.constants?.defaultProjectYears || 20;
-        const discountRate = window.AppConfig?.constants?.discountRate || 0.07;
+        const discountRateDefault = window.AppConfig?.constants?.discountRate || 0.07;
+        const discountRate = ((inputs.finance?.discountRate ?? (discountRateDefault * 100)) / 100);
 
         // Finance Params
         const totalCapex = inputs.capex.construction + inputs.capex.machinery + inputs.capex.land + (inputs.capex.sharePremium || 0) + (inputs.capex.others || 0);
