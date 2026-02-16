@@ -610,15 +610,24 @@ class InputManager {
             capex: { ...this.currentInputs.capex, ...(inputs.capex || {}) },
             finance: { ...this.currentInputs.finance, ...(inputs.finance || {}) },
 
-            personnel: inputs.personnel || this.currentInputs.personnel || [],
-            personnel: inputs.personnel || this.currentInputs.personnel || [],
+            personnel: Array.isArray(inputs.personnel) ? inputs.personnel : (this.currentInputs.personnel || []),
             personnelWelfarePercent: (inputs.personnelWelfarePercent !== undefined) ? inputs.personnelWelfarePercent : 0,
-            detailedOpex: inputs.detailedOpex || this.currentInputs.detailedOpex || []
+            detailedOpex: Array.isArray(inputs.detailedOpex) ? inputs.detailedOpex : (this.currentInputs.detailedOpex || []),
+            adminItems: Array.isArray(inputs.adminItems) ? inputs.adminItems : (this.currentInputs.adminItems || []),
+            otherRevenue: Array.isArray(inputs.otherRevenue) ? inputs.otherRevenue : (this.currentInputs.otherRevenue || [])
         };
 
         // Sync OPEX
-        if (inputs.opex && Array.isArray(inputs.opex)) {
+        if (Array.isArray(inputs.opex)) {
             this.state.opexItems = inputs.opex;
+        }
+
+        // Sync manager-local states so imported data truly replaces defaults/stale values
+        if (window.adminApp) {
+            window.adminApp.adminItems = this.currentInputs.adminItems;
+        }
+        if (window.detailedOpexApp) {
+            window.detailedOpexApp.state = this.currentInputs.detailedOpex;
         }
 
         // Sync DOM if exists
@@ -1240,19 +1249,28 @@ class InputManager {
             try {
                 const data = JSON.parse(e.target.result);
                 if (data && data.inputs) {
+                    const imported = { ...data.inputs };
+
                     // Legacy Support: Default to POWER if modelType is missing
-                    if (!data.inputs.modelType) {
-                        data.inputs.modelType = 'POWER';
+                    if (!imported.modelType) {
+                        imported.modelType = 'POWER';
                     }
 
+                    // On import, normalize lists so defaults do not reappear
+                    imported.opex = Array.isArray(imported.opex) ? imported.opex : [];
+                    imported.detailedOpex = Array.isArray(imported.detailedOpex) ? imported.detailedOpex : [];
+                    imported.adminItems = Array.isArray(imported.adminItems) ? imported.adminItems : [];
+                    imported.otherRevenue = Array.isArray(imported.otherRevenue) ? imported.otherRevenue : [];
+                    imported.personnel = Array.isArray(imported.personnel) ? imported.personnel : [];
+
                     // 1. Update State
-                    this.setState({ inputs: data.inputs });
+                    this.setState({ inputs: imported });
 
                     // 2. Re-render generic inputs to match model (Critical for switching Power <-> Water)
                     this.renderInputs();
 
                     // 3. Populate values into the new DOM
-                    this.setState({ inputs: data.inputs });
+                    this.setState({ inputs: imported });
 
                     alert('Scenario imported successfully!');
 
