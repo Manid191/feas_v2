@@ -80,10 +80,6 @@ class InputManager {
                             <label>Power Factor</label>
                             <input type="text" id="powerFactor" value="${fmt(this.currentInputs.powerFactor || 0.90)}" step="0.01" onchange="inputApps.evaluateMathInput(this)">
                         </div>
-                        <div class="form-group">
-                            <label>Rev Escalation %</label>
-                            <input type="text" id="revenueEscalation" value="${fmt(this.currentInputs.revenue.escalation || 0)}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
                     </div>
                     
                     ${this.renderRevenueInputs(modelType, fmt)}
