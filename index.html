@@ -16,9 +16,10 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles/header.css">
 </head>
 
-<body>
+<body class="app-shell">
     <!-- Project Selection Modal -->
     <div id="modal-starter" class="modal-overlay" style="display: none;">
         <div class="modal-content glass-panel">
@@ -60,9 +61,10 @@
     <div class="app-container">
         <!-- Top Navigation Bar -->
         <header class="top-navbar">
+            <div class="nav-glow"></div>
             <div class="nav-brand">
                 <i class="fa-solid fa-bolt-lightning logo-icon"></i>
-                <span class="logo-text">Feasibility<span class="highlight">Pro</span></span>
+                <span class="logo-text">Feasibility</span>
             </div>
 
             <nav class="nav-links">
@@ -102,21 +104,22 @@
 
             <div class="nav-actions">
                 <div class="project-controls">
-                    <button class="btn btn-sm btn-primary"
+                    <button class="btn btn-sm btn-primary" data-action="new-project"
                         onclick="window.inputApps && window.inputApps.resetToDefaults()">
                         <i class="fa-solid fa-plus"></i> New
                     </button>
-                    <button class="btn btn-sm btn-secondary"
+                    <button class="btn btn-sm btn-secondary" data-action="export-scenario"
                         onclick="window.inputApps && window.inputApps.exportScenario()">
                         <i class="fa-solid fa-download"></i> Export
                     </button>
-                    <button class="btn btn-sm btn-secondary" onclick="document.getElementById('topImportFile').click()">
+                    <button class="btn btn-sm btn-secondary" data-action="import-scenario" onclick="document.getElementById('topImportFile').click()">
                         <i class="fa-solid fa-file-import"></i> Import
                     </button>
                     <input type="file" id="topImportFile" style="display:none"
                         onchange="window.inputApps && window.inputApps.importScenario(this)" accept=".json">
                 </div>
                 <div class="user-profile-sm">
+                    <span class="build-badge">v5.2</span>
                     <span class="user-avatar-sm">AD</span>
                 </div>
             </div>

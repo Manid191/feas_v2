@@ -469,6 +469,7 @@ class InputManager {
             // DOM is present, scrape it
             const cachedPersonnel = this.currentInputs.personnel || [];
             const cachedDetailedOpex = this.currentInputs.detailedOpex || [];
+            const cachedAdminItems = this.currentInputs.adminItems || [];
             this.currentInputs = {
                 modelType: this.currentInputs.modelType || 'POWER', // PRESERVE MODEL TYPE
                 productionCapacity: getValue('productionCapacity') || getValue('capacity'),
@@ -512,7 +513,8 @@ class InputManager {
 
                 personnel: cachedPersonnel,
                 personnelWelfarePercent: getValue('personnelWelfarePercent') || 0,
-                detailedOpex: cachedDetailedOpex
+                detailedOpex: cachedDetailedOpex,
+                adminItems: cachedAdminItems
             };
         }
 
@@ -816,6 +818,7 @@ class InputManager {
                         }
                         else if (e.type === 'expense_opex') {
                             if (e.mode === 'absolute') simOpexAbs += val;
+                            else if (e.mode === 'delta') simOpexAbs += val;
                             else if (e.mode === 'percent') simOpexPct += val;
                         }
                     }
@@ -976,7 +979,7 @@ class InputManager {
                     }
 
                     let freqMultiplier = 1;
-                    if (fType === 'daily') freqMultiplier = (inputs.daysPerYear || 334);
+                    if (fType === 'daily') freqMultiplier = days;
                     else if (fType === 'monthly') freqMultiplier = 12;
 
                     const annualCost = qty * price * freqMultiplier * inflationFactor;
@@ -1071,7 +1074,7 @@ class InputManager {
             equityCashFlows[year] = equityCF + yearLoanProceeds;
 
             costsArray[year] = yearOpex + annualDepreciation + interestExp;
-            energyArray[year] = yearTotalEnergy * degradationFactor;
+            energyArray[year] = yearTotalEnergy;
 
             // Update Loan Balance
             if (year <= loanTerm) {
