@@ -105,7 +105,7 @@
             <div class="nav-actions">
                 <div class="project-controls">
                     <button class="btn btn-sm btn-primary" data-action="new-project"
-                        onclick="window.inputApps && window.inputApps.resetToDefaults()">
+                        onclick="window.app && window.app.openProjectTypeModal()">
                         <i class="fa-solid fa-plus"></i> New
                     </button>
                     <button class="btn btn-sm btn-secondary" data-action="export-scenario"
@@ -157,6 +157,7 @@
     <!-- Strategy Models -->
     <script src="models/ModelStrategy.js"></script>
     <script src="models/PowerModel.js"></script>
+    <script src="models/SolarModel.js"></script>
     <script src="models/WaterModel.js"></script>
     <script src="models/WasteModel.js"></script>
 

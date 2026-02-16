@@ -32,7 +32,7 @@ class InputManager {
         // Initialize Strategies
         this.strategies = {
             POWER: new PowerModel(),
-            SOLAR: new PowerModel(), // Solar uses same logic as Power for now
+            SOLAR: new SolarModel(),
             WATER: new WaterModel(),
             WASTE: new WasteModel()
         };
@@ -223,7 +223,7 @@ class InputManager {
     renderRevenueInputs(modelType, fmt) {
         let html = '<div class="divider"></div>';
 
-        if (modelType === 'POWER' || modelType === 'SOLAR') {
+        if (modelType === 'POWER') {
             html += `
                 <div class="row">
                     <div class="form-group">
@@ -242,6 +242,29 @@ class InputManager {
                     </div>
                     <div class="form-group">
                         <label>Hrs/Day</label>
+                        <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="form-group">
+                        <label>Adder (THB)</label>
+                        <input type="text" id="adderPrice" value="${fmt(this.currentInputs.revenue.adderPrice || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>Adder Yrs</label>
+                        <input type="text" id="adderYears" value="${fmt(this.currentInputs.revenue.adderYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
+                </div>
+            `;
+        } else if (modelType === 'SOLAR') {
+            html += `
+                <div class="row">
+                    <div class="form-group">
+                        <label>Feed-in Tariff (THB)</label>
+                        <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>Sun Hrs/Day</label>
                         <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
                     </div>
                 </div>

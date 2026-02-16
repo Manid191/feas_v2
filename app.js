@@ -221,6 +221,10 @@ function updateHeader(viewName) {
 
 // Global App Actions
 window.app = {
+    openProjectTypeModal: () => {
+        const modal = document.getElementById('modal-starter');
+        if (modal) modal.style.display = 'flex';
+    },
     createNewProject: (modelType) => {
         try {
             console.log('Creating new project:', modelType);
