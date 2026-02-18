@@ -20,13 +20,23 @@ class DashboardManager {
                     <div class="kpi-card">
                         <div class="kpi-icon icon-npv"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div class="kpi-content">
-                            <span>Net Present Value (NPV)</span>
+                            <span>Project NPV</span>
                             <h3 class="${results.npv >= 0 ? 'text-success' : 'text-danger'}">
                                 ${this.formatCurrency(results.npv)}
                             </h3>
                         </div>
                     </div>
-                    
+
+                    <div class="kpi-card">
+                        <div class="kpi-icon icon-npv"><i class="fa-solid fa-coins"></i></div>
+                        <div class="kpi-content">
+                            <span>Equity NPV</span>
+                            <h3 class="${results.npvEquity >= 0 ? 'text-success' : 'text-danger'}">
+                                ${this.formatCurrency(results.npvEquity)}
+                            </h3>
+                        </div>
+                    </div>
+
                     <div class="kpi-card">
                         <div class="kpi-icon icon-irr"><i class="fa-solid fa-percent"></i></div>
                         <div class="kpi-content">
@@ -46,6 +56,7 @@ class DashboardManager {
                             </h3>
                         </div>
                     </div>
+
 
                     <div class="kpi-card">
                         <div class="kpi-icon icon-lcoe"><i class="fa-solid fa-bolt"></i></div>
