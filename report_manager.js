@@ -97,6 +97,12 @@ class ReportManager {
                         </div>
                         <div class="kpi-card">
                             <div class="kpi-content">
+                                <span>Equity NPV</span>
+                                <h3 class="${results.npvEquity >= 0 ? 'text-success' : 'text-danger'}">${this.formatCurrency(results.npvEquity)}</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
                                 <span>Project IRR</span>
                                 <h3 class="${results.irr >= 0.1 ? 'text-success' : 'text-warning'}">${results.irr.toFixed(2)}%</h3>
                             </div>
