@@ -483,6 +483,49 @@ class InputManager {
             const el = document.getElementById(id);
             if (el) el.addEventListener('input', () => this.updateCapexTotal());
         });
+
+        // Toggle discount input mode (Ke/Kd vs manual WACC)
+        const discountModeEl = document.getElementById('discountMode');
+        const financialDrivers = ['ke', 'kd', 'debtRatio', 'taxRate'];
+        if (discountModeEl) {
+            discountModeEl.addEventListener('change', () => this.syncDiscountInputMode());
+        }
+        financialDrivers.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => this.syncDiscountInputMode());
+            if (el) el.addEventListener('change', () => this.syncDiscountInputMode());
+        });
+
+        this.syncDiscountInputMode();
+    }
+
+    syncDiscountInputMode() {
+        const mode = document.getElementById('discountMode')?.value || 'ke_kd';
+        const keEl = document.getElementById('ke');
+        const kdEl = document.getElementById('kd');
+        const discountRateEl = document.getElementById('discountRate');
+        const debtRatioEl = document.getElementById('debtRatio');
+        const taxRateEl = document.getElementById('taxRate');
+
+        if (!discountRateEl) return;
+
+        const isKeKdMode = mode === 'ke_kd';
+        if (keEl) keEl.disabled = !isKeKdMode;
+        if (kdEl) kdEl.disabled = !isKeKdMode;
+        discountRateEl.disabled = isKeKdMode;
+
+        if (isKeKdMode) {
+            const ke = parseFloat((keEl?.value || '0').replace(/,/g, '')) || 0;
+            const kd = parseFloat((kdEl?.value || '0').replace(/,/g, '')) || 0;
+            const debtRatio = (parseFloat((debtRatioEl?.value || '0').replace(/,/g, '')) || 0) / 100;
+            const equityRatio = 1 - debtRatio;
+            const taxRate = (parseFloat((taxRateEl?.value || '0').replace(/,/g, '')) || 0) / 100;
+            const computedWacc = (equityRatio * (ke / 100)) + (debtRatio * (kd / 100) * (1 - taxRate));
+            discountRateEl.value = (computedWacc * 100).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
     }
 
     updateCapexTotal() {
@@ -735,6 +778,7 @@ class InputManager {
                 const discountModeEl = document.getElementById('discountMode');
                 if (discountModeEl) discountModeEl.value = inputs.finance.discountMode || 'ke_kd';
                 setVal('taxHoliday', inputs.finance.taxHoliday);
+                this.syncDiscountInputMode();
             }
 
             this.renderOpexList();
