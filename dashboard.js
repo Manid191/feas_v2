@@ -58,6 +58,14 @@ class DashboardManager {
                     </div>
 
                     <div class="kpi-card">
+                        <div class="kpi-icon icon-irr"><i class="fa-solid fa-scale-balanced"></i></div>
+                        <div class="kpi-content">
+                            <span>Ke / Kd (After Tax)</span>
+                            <h3>${results.ke.toFixed(2)}% / ${results.kdAfterTax.toFixed(2)}%</h3>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card">
                         <div class="kpi-icon icon-lcoe"><i class="fa-solid fa-bolt"></i></div>
                         <div class="kpi-content">
                             <span>LCOE / Unit</span>

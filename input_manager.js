@@ -1175,6 +1175,13 @@ class InputManager {
         const lcoe = FinancialCalculator.lcoe(discountRate, costsArray, energyArray);
         const payback = FinancialCalculator.paybackPeriod(projectCashFlows);
 
+        // Cost of Capital Metrics
+        const equityRatio = 1 - debtRatio;
+        const kd = simInterestRate * 100;
+        const kdAfterTax = (simInterestRate * (1 - simTaxRate)) * 100;
+        const ke = equityRatio > 0 ? ((discountRate - (debtRatio * (simInterestRate * (1 - simTaxRate)))) / equityRatio) * 100 : 0;
+        const wacc = discountRate * 100;
+
         let cumulative = 0;
         const cumulativeCashFlows = projectCashFlows.map(cf => {
             cumulative += cf;
@@ -1189,6 +1196,7 @@ class InputManager {
 
         const results = {
             npv, irr, npvEquity, irrEquity, lcoe, payback,
+            ke, kd, kdAfterTax, wacc,
             cashFlows: projectCashFlows,
             equityCashFlows,
             cumulativeCashFlows,

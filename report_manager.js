@@ -82,6 +82,8 @@ class ReportManager {
                             <p><strong>Revenue Escalation:</strong> ${inputs.revenue.escalation}% / year</p>
                             <p><strong>Cost Inflation:</strong> ${inputs.finance.opexInflation}% / year</p>
                             <p><strong>Corporate Tax:</strong> ${inputs.finance.taxRate}%</p>
+                            <p><strong>Ke / Kd (After Tax):</strong> ${results.ke.toFixed(2)}% / ${results.kdAfterTax.toFixed(2)}%</p>
+                            <p><strong>Kd (Pre-Tax) / WACC:</strong> ${results.kd.toFixed(2)}% / ${results.wacc.toFixed(2)}%</p>
                         </div>
                     </div>
                 </div>
