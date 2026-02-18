@@ -16,9 +16,10 @@ class InputManager {
             this.currentInputs = {
                 capacity: 10, projectYears: 25, powerFactor: 0.95, hoursPerDay: 24,
                 revenue: { peakRate: 4.5, peakHours: 13, offPeakRate: 2.6, escalation: 0, adderPrice: 0, adderYears: 7 },
+                initialEfficiency: 100,
                 degradation: 0.5,
                 capex: { construction: 20, machinery: 50, land: 10, sharePremium: 0, others: 0 },
-                finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, taxHoliday: 0 },
+                finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, discountRate: 7, taxHoliday: 0 },
                 personnel: []
             };
         }
@@ -31,7 +32,7 @@ class InputManager {
         // Initialize Strategies
         this.strategies = {
             POWER: new PowerModel(),
-            SOLAR: new PowerModel(), // Solar uses same logic as Power for now
+            SOLAR: new SolarModel(),
             WATER: new WaterModel(),
             WASTE: new WasteModel()
         };
@@ -59,6 +60,13 @@ class InputManager {
                             <input type="text" id="capacity" value="${fmt(this.currentInputs.capacity)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                         <div class="form-group">
+                            <label>Initial Efficiency (%)</label>
+                            <input type="text" id="initialEfficiency" value="${fmt(this.currentInputs.initialEfficiency || 100)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
                             <label>Efficiency / Loss (%)</label>
                              <input type="text" id="degradation" value="${fmt(this.currentInputs.degradation || this.currentInputs.revenue.lossRate || 0)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
@@ -79,10 +87,6 @@ class InputManager {
                         <div class="form-group">
                             <label>Power Factor</label>
                             <input type="text" id="powerFactor" value="${fmt(this.currentInputs.powerFactor || 0.90)}" step="0.01" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                        <div class="form-group">
-                            <label>Rev Escalation %</label>
-                            <input type="text" id="revenueEscalation" value="${fmt(this.currentInputs.revenue.escalation || 0)}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                     </div>
                     
@@ -167,6 +171,11 @@ class InputManager {
                             <input type="text" id="opexInflation" value="${fmt(this.currentInputs.finance.opexInflation)}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label>Discount Rate %</label>
+                        <input type="text" id="discountRate" value="${fmt(this.currentInputs.finance.discountRate ?? ((window.AppConfig?.constants?.discountRate || 0.07) * 100))}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
                     <div class="form-group">
                         <label>Tax Holiday (Yrs)</label>
                         <input type="text" id="taxHoliday" value="${fmt(this.currentInputs.finance.taxHoliday || 0)}" onchange="inputApps.evaluateMathInput(this)">
@@ -214,7 +223,7 @@ class InputManager {
     renderRevenueInputs(modelType, fmt) {
         let html = '<div class="divider"></div>';
 
-        if (modelType === 'POWER' || modelType === 'SOLAR') {
+        if (modelType === 'POWER') {
             html += `
                 <div class="row">
                     <div class="form-group">
@@ -233,6 +242,29 @@ class InputManager {
                     </div>
                     <div class="form-group">
                         <label>Hrs/Day</label>
+                        <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="form-group">
+                        <label>Adder (THB)</label>
+                        <input type="text" id="adderPrice" value="${fmt(this.currentInputs.revenue.adderPrice || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>Adder Yrs</label>
+                        <input type="text" id="adderYears" value="${fmt(this.currentInputs.revenue.adderYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
+                </div>
+            `;
+        } else if (modelType === 'SOLAR') {
+            html += `
+                <div class="row">
+                    <div class="form-group">
+                        <label>Feed-in Tariff (THB)</label>
+                        <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>Sun Hrs/Day</label>
                         <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
                     </div>
                 </div>
@@ -469,6 +501,7 @@ class InputManager {
             // DOM is present, scrape it
             const cachedPersonnel = this.currentInputs.personnel || [];
             const cachedDetailedOpex = this.currentInputs.detailedOpex || [];
+            const cachedAdminItems = this.currentInputs.adminItems || [];
             this.currentInputs = {
                 modelType: this.currentInputs.modelType || 'POWER', // PRESERVE MODEL TYPE
                 productionCapacity: getValue('productionCapacity') || getValue('capacity'),
@@ -477,6 +510,7 @@ class InputManager {
                 powerFactor: getValue('powerFactor'),
                 hoursPerDay: getValue('hoursPerDay'),
                 daysPerYear: getValue('daysPerYear') || 365,
+                initialEfficiency: getValue('initialEfficiency') || 100,
                 degradation: getValue('degradation'),
 
                 revenue: {
@@ -507,12 +541,14 @@ class InputManager {
                     loanTerm: getValue('loanTerm'),
                     taxRate: getValue('taxRate'),
                     opexInflation: getValue('opexInflation'),
+                    discountRate: getValue('discountRate'),
                     taxHoliday: getValue('taxHoliday')
                 },
 
                 personnel: cachedPersonnel,
                 personnelWelfarePercent: getValue('personnelWelfarePercent') || 0,
-                detailedOpex: cachedDetailedOpex
+                detailedOpex: cachedDetailedOpex,
+                adminItems: cachedAdminItems
             };
         }
 
@@ -608,15 +644,24 @@ class InputManager {
             capex: { ...this.currentInputs.capex, ...(inputs.capex || {}) },
             finance: { ...this.currentInputs.finance, ...(inputs.finance || {}) },
 
-            personnel: inputs.personnel || this.currentInputs.personnel || [],
-            personnel: inputs.personnel || this.currentInputs.personnel || [],
+            personnel: Array.isArray(inputs.personnel) ? inputs.personnel : (this.currentInputs.personnel || []),
             personnelWelfarePercent: (inputs.personnelWelfarePercent !== undefined) ? inputs.personnelWelfarePercent : 0,
-            detailedOpex: inputs.detailedOpex || this.currentInputs.detailedOpex || []
+            detailedOpex: Array.isArray(inputs.detailedOpex) ? inputs.detailedOpex : (this.currentInputs.detailedOpex || []),
+            adminItems: Array.isArray(inputs.adminItems) ? inputs.adminItems : (this.currentInputs.adminItems || []),
+            otherRevenue: Array.isArray(inputs.otherRevenue) ? inputs.otherRevenue : (this.currentInputs.otherRevenue || [])
         };
 
         // Sync OPEX
-        if (inputs.opex && Array.isArray(inputs.opex)) {
+        if (Array.isArray(inputs.opex)) {
             this.state.opexItems = inputs.opex;
+        }
+
+        // Sync manager-local states so imported data truly replaces defaults/stale values
+        if (window.adminApp) {
+            window.adminApp.adminItems = this.currentInputs.adminItems;
+        }
+        if (window.detailedOpexApp) {
+            window.detailedOpexApp.state = this.currentInputs.detailedOpex;
         }
 
         // Sync DOM if exists
@@ -634,6 +679,7 @@ class InputManager {
             setVal('powerFactor', inputs.powerFactor);
             setVal('hoursPerDay', inputs.hoursPerDay);
             setVal('daysPerYear', inputs.daysPerYear);
+            setVal('initialEfficiency', inputs.initialEfficiency || 100);
             setVal('degradation', inputs.degradation);
 
             if (inputs.revenue) {
@@ -663,6 +709,7 @@ class InputManager {
                 setVal('loanTerm', inputs.finance.loanTerm);
                 setVal('taxRate', inputs.finance.taxRate);
                 setVal('opexInflation', inputs.finance.opexInflation);
+                setVal('discountRate', inputs.finance.discountRate ?? ((window.AppConfig?.constants?.discountRate || 0.07) * 100));
                 setVal('taxHoliday', inputs.finance.taxHoliday);
             }
 
@@ -676,7 +723,8 @@ class InputManager {
 
         // --- 1. Generate Parameters ---
         const projectYears = inputs.projectYears || window.AppConfig?.constants?.defaultProjectYears || 20;
-        const discountRate = window.AppConfig?.constants?.discountRate || 0.07;
+        const discountRateDefault = window.AppConfig?.constants?.discountRate || 0.07;
+        const discountRate = ((inputs.finance?.discountRate ?? (discountRateDefault * 100)) / 100);
 
         // Finance Params
         const totalCapex = inputs.capex.construction + inputs.capex.machinery + inputs.capex.land + (inputs.capex.sharePremium || 0) + (inputs.capex.others || 0);
@@ -703,6 +751,7 @@ class InputManager {
 
         const revenueEscalation = (inputs.revenue.escalation || 0) / 100;
         const taxHoliday = inputs.finance.taxHoliday || 0;
+        const initialEfficiencyFactor = (inputs.initialEfficiency || 100) / 100;
         const degradationRate = (inputs.degradation || 0) / 100;
 
         // Adder Params
@@ -816,6 +865,7 @@ class InputManager {
                         }
                         else if (e.type === 'expense_opex') {
                             if (e.mode === 'absolute') simOpexAbs += val;
+                            else if (e.mode === 'delta') simOpexAbs += val;
                             else if (e.mode === 'percent') simOpexPct += val;
                         }
                     }
@@ -826,8 +876,8 @@ class InputManager {
             const escalationFactor = Math.pow(1 + revenueEscalation, year - 1);
             const inflationFactor = Math.pow(1 + simOpexInflation, year - 1);
 
-            // Degradation applies to Output/Efficiency
-            const degradationFactor = Math.pow(1 - degradationRate, year - 1);
+            // Year 1 starts at initialEfficiency and degrades each subsequent year
+            const degradationFactor = initialEfficiencyFactor * Math.pow(1 - degradationRate, year - 1);
             const personnelMultiplier = 1 + ((inputs.personnelWelfarePercent || 0) / 100);
 
             // Determine Model Logic
@@ -896,19 +946,23 @@ class InputManager {
             inputs.opex.forEach(item => {
                 let multiplier = 0;
                 const fType = item.freqType || 'yearly';
+                let escStartYear = 1;
 
                 if (fType === 'daily') multiplier = inputs.daysPerYear || 365;
                 else if (fType === 'monthly') multiplier = 12;
                 else if (fType === 'yearly') multiplier = 1;
                 else if (fType === 'every_n') {
                     const n = parseInt(item.customN) || 5;
+                    escStartYear = n;
                     if (year % n === 0) multiplier = 1;
                 } else if (fType === 'period') {
                     const s = parseInt(item.startYear) || 1;
                     const e = parseInt(item.endYear) || projectYears;
+                    escStartYear = s;
                     if (year >= s && year <= e) multiplier = 1;
                 } else {
                     const oldFreq = item.frequency || 1;
+                    escStartYear = oldFreq === 1 ? 1 : oldFreq;
                     if (oldFreq === 1 || year % oldFreq === 0) multiplier = 1;
                 }
 
@@ -924,7 +978,8 @@ class InputManager {
                     else if (item.type === 'percent_const_mach') baseCost = (item.value / 100) * ((inputs.capex.construction || 0) + (inputs.capex.machinery || 0));
 
                     baseCost *= qty;
-                    cost = baseCost * multiplier * inflationFactor;
+                    const itemInflationFactor = Math.pow(1 + simOpexInflation, Math.max(0, year - escStartYear));
+                    cost = baseCost * multiplier * itemInflationFactor;
                 }
 
                 yearOpex += cost;
@@ -976,7 +1031,7 @@ class InputManager {
                     }
 
                     let freqMultiplier = 1;
-                    if (fType === 'daily') freqMultiplier = (inputs.daysPerYear || 334);
+                    if (fType === 'daily') freqMultiplier = days;
                     else if (fType === 'monthly') freqMultiplier = 12;
 
                     const annualCost = qty * price * freqMultiplier * inflationFactor;
@@ -1071,7 +1126,7 @@ class InputManager {
             equityCashFlows[year] = equityCF + yearLoanProceeds;
 
             costsArray[year] = yearOpex + annualDepreciation + interestExp;
-            energyArray[year] = yearTotalEnergy * degradationFactor;
+            energyArray[year] = yearTotalEnergy;
 
             // Update Loan Balance
             if (year <= loanTerm) {
@@ -1120,6 +1175,13 @@ class InputManager {
         const lcoe = FinancialCalculator.lcoe(discountRate, costsArray, energyArray);
         const payback = FinancialCalculator.paybackPeriod(projectCashFlows);
 
+        // Cost of Capital Metrics
+        const equityRatio = 1 - debtRatio;
+        const kd = simInterestRate * 100;
+        const kdAfterTax = (simInterestRate * (1 - simTaxRate)) * 100;
+        const ke = equityRatio > 0 ? ((discountRate - (debtRatio * (simInterestRate * (1 - simTaxRate)))) / equityRatio) * 100 : 0;
+        const wacc = discountRate * 100;
+
         let cumulative = 0;
         const cumulativeCashFlows = projectCashFlows.map(cf => {
             cumulative += cf;
@@ -1134,6 +1196,7 @@ class InputManager {
 
         const results = {
             npv, irr, npvEquity, irrEquity, lcoe, payback,
+            ke, kd, kdAfterTax, wacc,
             cashFlows: projectCashFlows,
             equityCashFlows,
             cumulativeCashFlows,
@@ -1237,19 +1300,28 @@ class InputManager {
             try {
                 const data = JSON.parse(e.target.result);
                 if (data && data.inputs) {
+                    const imported = { ...data.inputs };
+
                     // Legacy Support: Default to POWER if modelType is missing
-                    if (!data.inputs.modelType) {
-                        data.inputs.modelType = 'POWER';
+                    if (!imported.modelType) {
+                        imported.modelType = 'POWER';
                     }
 
+                    // On import, normalize lists so defaults do not reappear
+                    imported.opex = Array.isArray(imported.opex) ? imported.opex : [];
+                    imported.detailedOpex = Array.isArray(imported.detailedOpex) ? imported.detailedOpex : [];
+                    imported.adminItems = Array.isArray(imported.adminItems) ? imported.adminItems : [];
+                    imported.otherRevenue = Array.isArray(imported.otherRevenue) ? imported.otherRevenue : [];
+                    imported.personnel = Array.isArray(imported.personnel) ? imported.personnel : [];
+
                     // 1. Update State
-                    this.setState({ inputs: data.inputs });
+                    this.setState({ inputs: imported });
 
                     // 2. Re-render generic inputs to match model (Critical for switching Power <-> Water)
                     this.renderInputs();
 
                     // 3. Populate values into the new DOM
-                    this.setState({ inputs: data.inputs });
+                    this.setState({ inputs: imported });
 
                     alert('Scenario imported successfully!');
 
