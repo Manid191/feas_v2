@@ -19,7 +19,7 @@ class InputManager {
                 initialEfficiency: 100,
                 degradation: 0.5,
                 capex: { construction: 20, machinery: 50, land: 10, sharePremium: 0, others: 0 },
-                finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, ke: 12, kd: 6, discountRate: 7, taxHoliday: 0 },
+                finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, ke: 12, kd: 6, discountRate: 7, discountMode: 'ke_kd', taxHoliday: 0 },
                 personnel: []
             };
         }
@@ -181,6 +181,17 @@ class InputManager {
                             <label>Kd (%)</label>
                             <input type="text" id="kd" value="${fmt(this.currentInputs.finance.kd || this.currentInputs.finance.interestRate || 0)}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Method</label>
+                        <select id="discountMode">
+                            <option value="ke_kd" ${(this.currentInputs.finance.discountMode || 'ke_kd') === 'ke_kd' ? 'selected' : ''}>Use Ke/Kd (Auto WACC)</option>
+                            <option value="manual_wacc" ${this.currentInputs.finance.discountMode === 'manual_wacc' ? 'selected' : ''}>Use WACC Input</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>WACC / Discount Rate (%)</label>
+                        <input type="text" id="discountRate" value="${fmt(this.currentInputs.finance.discountRate || 0)}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
                     </div>
                     <div class="form-group">
                         <label>Tax Holiday (Yrs)</label>
@@ -549,7 +560,8 @@ class InputManager {
                     opexInflation: getValue('opexInflation'),
                     ke: getValue('ke'),
                     kd: getValue('kd'),
-                    discountRate: getValue('discountRate'), // backward compatibility
+                    discountMode: document.getElementById('discountMode')?.value || 'ke_kd',
+                    discountRate: getValue('discountRate'),
                     taxHoliday: getValue('taxHoliday')
                 },
 
@@ -719,6 +731,9 @@ class InputManager {
                 setVal('opexInflation', inputs.finance.opexInflation);
                 setVal('ke', inputs.finance.ke || 0);
                 setVal('kd', inputs.finance.kd || inputs.finance.interestRate || 0);
+                setVal('discountRate', inputs.finance.discountRate);
+                const discountModeEl = document.getElementById('discountMode');
+                if (discountModeEl) discountModeEl.value = inputs.finance.discountMode || 'ke_kd';
                 setVal('taxHoliday', inputs.finance.taxHoliday);
             }
 
@@ -743,7 +758,11 @@ class InputManager {
         const taxRateForWacc = (inputs.finance.taxRate || 0) / 100;
 
         const waccFromInputs = (equityRatio * keInputRate) + (debtRatio * kdInputRate * (1 - taxRateForWacc));
-        const discountRate = waccFromInputs > 0 ? waccFromInputs : ((inputs.finance?.discountRate ?? (discountRateDefault * 100)) / 100);
+        const manualWaccRate = (inputs.finance?.discountRate ?? (discountRateDefault * 100)) / 100;
+        const discountMode = inputs.finance?.discountMode || 'ke_kd';
+        const discountRate = discountMode === 'manual_wacc'
+            ? manualWaccRate
+            : (waccFromInputs > 0 ? waccFromInputs : manualWaccRate);
 
         // Finance Params
         const totalCapex = inputs.capex.construction + inputs.capex.machinery + inputs.capex.land + (inputs.capex.sharePremium || 0) + (inputs.capex.others || 0);

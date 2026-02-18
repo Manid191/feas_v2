@@ -115,6 +115,7 @@ window.AppConfig = {
             ke: 12,
             kd: 6,
             discountRate: 7,
+            discountMode: 'ke_kd',
             taxHoliday: 0
         },
         personnel: [
