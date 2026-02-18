@@ -19,7 +19,7 @@ class InputManager {
                 initialEfficiency: 100,
                 degradation: 0.5,
                 capex: { construction: 20, machinery: 50, land: 10, sharePremium: 0, others: 0 },
-                finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, discountRate: 7, taxHoliday: 0 },
+                finance: { debtRatio: 70, interestRate: 5.0, loanTerm: 10, taxRate: 20, opexInflation: 1.5, ke: 12, kd: 6, discountRate: 7, taxHoliday: 0 },
                 personnel: []
             };
         }
@@ -172,9 +172,15 @@ class InputManager {
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Discount Rate %</label>
-                        <input type="text" id="discountRate" value="${fmt(this.currentInputs.finance.discountRate ?? ((window.AppConfig?.constants?.discountRate || 0.07) * 100))}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Ke (%)</label>
+                            <input type="text" id="ke" value="${fmt(this.currentInputs.finance.ke || 0)}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Kd (%)</label>
+                            <input type="text" id="kd" value="${fmt(this.currentInputs.finance.kd || this.currentInputs.finance.interestRate || 0)}" step="0.1" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Tax Holiday (Yrs)</label>
@@ -541,7 +547,9 @@ class InputManager {
                     loanTerm: getValue('loanTerm'),
                     taxRate: getValue('taxRate'),
                     opexInflation: getValue('opexInflation'),
-                    discountRate: getValue('discountRate'),
+                    ke: getValue('ke'),
+                    kd: getValue('kd'),
+                    discountRate: getValue('discountRate'), // backward compatibility
                     taxHoliday: getValue('taxHoliday')
                 },
 
@@ -709,7 +717,8 @@ class InputManager {
                 setVal('loanTerm', inputs.finance.loanTerm);
                 setVal('taxRate', inputs.finance.taxRate);
                 setVal('opexInflation', inputs.finance.opexInflation);
-                setVal('discountRate', inputs.finance.discountRate ?? ((window.AppConfig?.constants?.discountRate || 0.07) * 100));
+                setVal('ke', inputs.finance.ke || 0);
+                setVal('kd', inputs.finance.kd || inputs.finance.interestRate || 0);
                 setVal('taxHoliday', inputs.finance.taxHoliday);
             }
 
@@ -724,11 +733,20 @@ class InputManager {
         // --- 1. Generate Parameters ---
         const projectYears = inputs.projectYears || window.AppConfig?.constants?.defaultProjectYears || 20;
         const discountRateDefault = window.AppConfig?.constants?.discountRate || 0.07;
-        const discountRate = ((inputs.finance?.discountRate ?? (discountRateDefault * 100)) / 100);
+
+        // Cost of capital inputs (for WACC)
+
+        const keInputRate = (inputs.finance?.ke || 0) / 100;
+        const kdInputRate = ((inputs.finance?.kd || inputs.finance?.interestRate || 0) / 100);
+        const debtRatio = (inputs.finance.debtRatio || 0) / 100;
+        const equityRatio = 1 - debtRatio;
+        const taxRateForWacc = (inputs.finance.taxRate || 0) / 100;
+
+        const waccFromInputs = (equityRatio * keInputRate) + (debtRatio * kdInputRate * (1 - taxRateForWacc));
+        const discountRate = waccFromInputs > 0 ? waccFromInputs : ((inputs.finance?.discountRate ?? (discountRateDefault * 100)) / 100);
 
         // Finance Params
         const totalCapex = inputs.capex.construction + inputs.capex.machinery + inputs.capex.land + (inputs.capex.sharePremium || 0) + (inputs.capex.others || 0);
-        const debtRatio = (inputs.finance.debtRatio || 0) / 100;
         const loanAmount = totalCapex * debtRatio;
         const equityAmount = totalCapex - loanAmount;
 
@@ -1176,10 +1194,9 @@ class InputManager {
         const payback = FinancialCalculator.paybackPeriod(projectCashFlows);
 
         // Cost of Capital Metrics
-        const equityRatio = 1 - debtRatio;
-        const kd = simInterestRate * 100;
-        const kdAfterTax = (simInterestRate * (1 - simTaxRate)) * 100;
-        const ke = equityRatio > 0 ? ((discountRate - (debtRatio * (simInterestRate * (1 - simTaxRate)))) / equityRatio) * 100 : 0;
+        const ke = keInputRate * 100;
+        const kd = kdInputRate * 100;
+        const kdAfterTax = kdInputRate * (1 - simTaxRate) * 100;
         const wacc = discountRate * 100;
 
         let cumulative = 0;

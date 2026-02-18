@@ -112,6 +112,8 @@ window.AppConfig = {
             loanTerm: 10,
             taxRate: 20,
             opexInflation: 1.5,
+            ke: 12,
+            kd: 6,
             discountRate: 7,
             taxHoliday: 0
         },
