@@ -149,10 +149,21 @@ class DashboardManager {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Project Cash Flow (Unlevered)',
+                        label: 'Annual Project Cash Flow (Unlevered)',
                         data: results.cashFlows,
                         borderColor: 'rgb(54, 162, 235)', // Blue
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: false,
+                        type: 'line',
+                        order: 1
+                    },
+                    {
+                        label: 'Annual Equity Cash Flow (Levered)',
+                        data: results.equityCashFlows,
+                        borderColor: 'rgb(46, 204, 113)', // Green
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
                         borderWidth: 2,
                         tension: 0.1,
                         fill: false,
@@ -167,6 +178,7 @@ class DashboardManager {
                         borderWidth: 1,
                         type: 'bar',
                         stack: 'costs',
+                        hidden: true,
                         order: 2
                     },
                     {
@@ -177,6 +189,7 @@ class DashboardManager {
                         borderWidth: 1,
                         type: 'bar',
                         stack: 'costs',
+                        hidden: true,
                         order: 2
                     },
                     {
@@ -187,6 +200,7 @@ class DashboardManager {
                         borderWidth: 1,
                         type: 'bar',
                         stack: 'costs',
+                        hidden: true,
                         order: 2
                     },
                     {
@@ -198,6 +212,7 @@ class DashboardManager {
                         borderDash: [5, 5],
                         tension: 0.1,
                         fill: false, // Changed to false to avoid overwhelming
+                        hidden: true,
                         type: 'line',
                         order: 0 // On Top
                     },
@@ -210,6 +225,7 @@ class DashboardManager {
                         borderDash: [8, 4],
                         tension: 0.1,
                         fill: false,
+                        hidden: true,
                         type: 'line',
                         order: 0
                     }

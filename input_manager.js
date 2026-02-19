@@ -818,14 +818,7 @@ class InputManager {
         let simOpexInflation = (inputs.finance.opexInflation || 0) / 100;
         let simTaxRate = (inputs.finance.taxRate || 0) / 100;
 
-        // Check for Global Simulation Overrides
-        if (simulationEvents && simulationEvents.length > 0) {
-            simulationEvents.forEach(e => {
-                if (e.type === 'global_interest') simInterestRate = parseFloat(e.value) / 100;
-                if (e.type === 'global_inflation') simOpexInflation = parseFloat(e.value) / 100;
-                if (e.type === 'global_tax') simTaxRate = parseFloat(e.value) / 100;
-            });
-        }
+        // Global simulation overrides were removed from UI; keep scenario-based events only.
 
         const loanTerm = inputs.finance.loanTerm || 10;
         const annualDebtService = FinancialCalculator.pmt(simInterestRate, loanTerm, loanAmount);
