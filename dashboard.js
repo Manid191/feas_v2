@@ -150,7 +150,7 @@ class DashboardManager {
                 datasets: [
                     {
                         label: 'Annual accumulate Project Cash Flow',
-                        data: results.cashFlows,
+                        data: results.cumulativeCashFlows,
                         borderColor: 'rgb(54, 162, 235)', // Blue
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
                         borderWidth: 2,
@@ -161,7 +161,7 @@ class DashboardManager {
                     },
                     {
                         label: 'Annual accumulate Equity Cash Flow',
-                        data: results.equityCashFlows,
+                        data: results.cumulativeEquityCashFlows,
                         borderColor: 'rgb(46, 204, 113)', // Green
                         backgroundColor: 'rgba(46, 204, 113, 0.1)',
                         borderWidth: 2,
@@ -203,32 +203,6 @@ class DashboardManager {
                         hidden: true,
                         order: 2
                     },
-                    {
-                        label: 'Cumulative Project Cash Flow',
-                        data: results.cumulativeCashFlows,
-                        borderColor: 'rgb(255, 99, 132)', // Red
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        tension: 0.1,
-                        fill: false, // Changed to false to avoid overwhelming
-                        hidden: true,
-                        type: 'line',
-                        order: 0 // On Top
-                    },
-                    {
-                        label: 'Cumulative Equity Cash Flow',
-                        data: results.cumulativeEquityCashFlows,
-                        borderColor: 'rgb(75, 192, 192)', // Teal
-                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
-                        borderWidth: 2,
-                        borderDash: [8, 4],
-                        tension: 0.1,
-                        fill: false,
-                        hidden: true,
-                        type: 'line',
-                        order: 0
-                    }
                 ]
             },
             options: {
