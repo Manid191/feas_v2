@@ -20,13 +20,23 @@ class DashboardManager {
                     <div class="kpi-card">
                         <div class="kpi-icon icon-npv"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div class="kpi-content">
-                            <span>Net Present Value (NPV)</span>
+                            <span>Project NPV</span>
                             <h3 class="${results.npv >= 0 ? 'text-success' : 'text-danger'}">
                                 ${this.formatCurrency(results.npv)}
                             </h3>
                         </div>
                     </div>
-                    
+
+                    <div class="kpi-card">
+                        <div class="kpi-icon icon-npv"><i class="fa-solid fa-coins"></i></div>
+                        <div class="kpi-content">
+                            <span>Equity NPV</span>
+                            <h3 class="${results.npvEquity >= 0 ? 'text-success' : 'text-danger'}">
+                                ${this.formatCurrency(results.npvEquity)}
+                            </h3>
+                        </div>
+                    </div>
+
                     <div class="kpi-card">
                         <div class="kpi-icon icon-irr"><i class="fa-solid fa-percent"></i></div>
                         <div class="kpi-content">
@@ -46,6 +56,7 @@ class DashboardManager {
                             </h3>
                         </div>
                     </div>
+
 
                     <div class="kpi-card">
                         <div class="kpi-icon icon-lcoe"><i class="fa-solid fa-bolt"></i></div>
@@ -138,10 +149,21 @@ class DashboardManager {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Project Cash Flow (Unlevered)',
-                        data: results.cashFlows,
+                        label: 'Annual accumulate Project Cash Flow',
+                        data: results.cumulativeCashFlows,
                         borderColor: 'rgb(54, 162, 235)', // Blue
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: false,
+                        type: 'line',
+                        order: 1
+                    },
+                    {
+                        label: 'Annual accumulate Equity Cash Flow',
+                        data: results.cumulativeEquityCashFlows,
+                        borderColor: 'rgb(46, 204, 113)', // Green
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
                         borderWidth: 2,
                         tension: 0.1,
                         fill: false,
@@ -156,6 +178,7 @@ class DashboardManager {
                         borderWidth: 1,
                         type: 'bar',
                         stack: 'costs',
+                        hidden: true,
                         order: 2
                     },
                     {
@@ -166,6 +189,7 @@ class DashboardManager {
                         borderWidth: 1,
                         type: 'bar',
                         stack: 'costs',
+                        hidden: true,
                         order: 2
                     },
                     {
@@ -176,20 +200,9 @@ class DashboardManager {
                         borderWidth: 1,
                         type: 'bar',
                         stack: 'costs',
+                        hidden: true,
                         order: 2
                     },
-                    {
-                        label: 'Cumulative Cash Flow',
-                        data: results.cumulativeCashFlows,
-                        borderColor: 'rgb(255, 99, 132)', // Red
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        tension: 0.1,
-                        fill: false, // Changed to false to avoid overwhelming
-                        type: 'line',
-                        order: 0 // On Top
-                    }
                 ]
             },
             options: {
@@ -227,7 +240,8 @@ class DashboardManager {
                         position: 'left',
                         beginAtZero: false, // Allow negatives for CF
                         grid: {
-                            color: '#e0e0e0'
+                            color: (context) => (context.tick?.value === 0 ? '#222' : '#e0e0e0'),
+                            lineWidth: (context) => (context.tick?.value === 0 ? 3 : 1)
                         },
                         ticks: {
                             color: '#333',
