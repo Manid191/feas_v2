@@ -240,7 +240,8 @@ class DashboardManager {
                         position: 'left',
                         beginAtZero: false, // Allow negatives for CF
                         grid: {
-                            color: '#e0e0e0'
+                            color: (context) => (context.tick?.value === 0 ? '#222' : '#e0e0e0'),
+                            lineWidth: (context) => (context.tick?.value === 0 ? 3 : 1)
                         },
                         ticks: {
                             color: '#333',
