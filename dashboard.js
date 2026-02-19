@@ -190,7 +190,7 @@ class DashboardManager {
                         order: 2
                     },
                     {
-                        label: 'Cumulative Cash Flow',
+                        label: 'Cumulative Project Cash Flow',
                         data: results.cumulativeCashFlows,
                         borderColor: 'rgb(255, 99, 132)', // Red
                         backgroundColor: 'rgba(255, 99, 132, 0.1)',
@@ -200,6 +200,18 @@ class DashboardManager {
                         fill: false, // Changed to false to avoid overwhelming
                         type: 'line',
                         order: 0 // On Top
+                    },
+                    {
+                        label: 'Cumulative Equity Cash Flow',
+                        data: results.cumulativeEquityCashFlows,
+                        borderColor: 'rgb(75, 192, 192)', // Teal
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [8, 4],
+                        tension: 0.1,
+                        fill: false,
+                        type: 'line',
+                        order: 0
                     }
                 ]
             },
