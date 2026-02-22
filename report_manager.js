@@ -62,6 +62,8 @@ class ReportManager {
                     </button>
                 </div>
 
+
+
                 <div class="report-section">
                     <h3>1. Project Parameters</h3>
                     <div class="input-grid print-grid">
@@ -111,6 +113,12 @@ class ReportManager {
                             <div class="kpi-content">
                                 <span>Equity IRR (ROE)</span>
                                 <h3 class="${results.irrEquity >= 0.1 ? 'text-success' : 'text-warning'}">${results.irrEquity.toFixed(2)}%</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span>LCOE / Unit</span>
+                                <h3>${results.lcoe.toFixed(2)} THB</h3>
                             </div>
                         </div>
                         <div class="kpi-card">

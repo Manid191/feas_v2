@@ -9,9 +9,10 @@ class AdminCostManager {
     }
 
     init() {
-        // Load from existing state or defaults
-        if (!window.inputApps.currentInputs.adminItems || window.inputApps.currentInputs.adminItems.length === 0) {
-            this.loadDefaults();
+        // Load from existing state or initialize empty
+        if (!window.inputApps.currentInputs.adminItems) {
+            this.adminItems = [];
+            window.inputApps.currentInputs.adminItems = this.adminItems;
         } else {
             this.adminItems = window.inputApps.currentInputs.adminItems;
         }
@@ -48,10 +49,13 @@ class AdminCostManager {
                 <h3><i class="fa-solid fa-briefcase"></i> Admin Cost (Fixed)</h3>
                 <div>
                     <button class="btn btn-secondary btn-sm" onclick="adminApp.resetToDefaults()" style="margin-right: 8px;">
-                        <i class="fa-solid fa-rotate-left"></i> Reset
+                        <i class="fa-solid fa-file-invoice"></i> Load Preset
                     </button>
-                    <button class="btn btn-primary btn-sm" onclick="adminApp.addItem()">
+                    <button class="btn btn-primary btn-sm" onclick="adminApp.addItem()" style="margin-right: 8px;">
                         <i class="fa-solid fa-plus"></i> Add Item
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="window.inputApps.userTriggerCalculate()">
+                        <i class="fa-solid fa-calculator"></i> Calculate
                     </button>
                 </div>
             </div>
@@ -81,9 +85,7 @@ class AdminCostManager {
         this.renderSummary();
 
         // Notify InputManager to recalculate (silently - don't render dashboard!)
-        if (window.inputApps && window.inputApps.calculate) {
-            window.inputApps.calculate(null, true);
-        }
+        // Removed real-time calculate
     }
 
     renderSummary() {
@@ -225,10 +227,10 @@ class AdminCostManager {
         // Always update summary
         this.renderSummary();
 
-        // Recalculate silently
-        if (window.inputApps && window.inputApps.calculate) {
-            window.inputApps.calculate(null, true);
-        }
+        // Always update summary
+        this.renderSummary();
+
+        // Removed real-time calculate
     }
 
     addItem() {
@@ -250,20 +252,20 @@ class AdminCostManager {
         window.inputApps.currentInputs.adminItems = this.adminItems;
         this.renderList();
         this.renderSummary();
-
-        if (window.inputApps && window.inputApps.calculate) {
-            window.inputApps.calculate(null, true);
-        }
     }
 
     resetToDefaults() {
-        if (confirm('Reset Admin Costs to defaults?')) {
+        if (confirm('Load template preset? This will overwrite your current items.')) {
             this.loadDefaults();
             this.renderList();
             this.renderSummary();
-
-            if (window.inputApps && window.inputApps.calculate) {
-                window.inputApps.calculate(null, true);
+            // Trigger save state
+            if (window.StorageManager && typeof window.StorageManager.saveProject === 'function') {
+                window.StorageManager.saveProject({
+                    view: 'admin-cost',
+                    lastModified: new Date().toISOString(),
+                    inputs: window.inputApps.getInputs()
+                });
             }
         }
     }

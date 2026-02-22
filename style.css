@@ -1,33 +1,43 @@
 :root {
-    /* Classic Professional Palette */
-    --k-bg-body: #f5f5f5;
-    /* Light gray background */
-    --k-bg-surface: #ffffff;
-    /* Pure white brightness */
-    --k-primary: #005a9e;
-    /* Classical Professional Blue */
-    --k-primary-dark: #004578;
-    --k-text-main: #323130;
-    /* Dark gray for softer contrast than black */
-    --k-text-light: #605e5c;
-    --k-border: #d1d1d1;
-    /* Standard definition border */
+    /* Unified Neo Dashboard Palette */
+    --primary-color: #2563eb;
+    --brand-900: #0f172a;
+    --brand-700: #1d4ed8;
+    --brand-500: #3b82f6;
+    --surface-soft: #f8fbff;
+    --surface-card: #ffffff;
+    --border-soft: #dbe7ff;
+    --text-main: #0f172a;
+    --text-sub: #475569;
 
-    /* Functional Colors */
-    --k-success: #107c10;
-    --k-warning: #797775;
-    /* Neutral warning or #d83b01 for alerts */
-    --k-danger: #a80000;
+    --shadow-soft: 0 10px 30px rgba(37, 99, 235, 0.08);
+    --shadow-hard: 0 14px 34px rgba(15, 23, 42, 0.12);
+    --radius-xl: 18px;
+    --radius-lg: 14px;
+    --radius-md: 10px;
+    --radius-sm: 6px;
+    
+    /* Legacy variable mappings (to ensure classic components adapt to the new theme seamlessly) */
+    --k-bg-body: #eff6ff; 
+    --k-bg-surface: var(--surface-card);
+    --k-primary: var(--brand-700);
+    --k-primary-dark: var(--brand-900);
+    --k-text-main: var(--text-main);
+    --k-text-light: var(--text-sub);
+    --k-border: var(--border-soft);
+    --k-success: #10b981;
+    --k-warning: #f59e0b;
+    --k-danger: #ef4444;
 
     /* Layout Logic */
-    --nav-height: 48px;
+    --nav-height: 62px;
     --spacing-xs: 4px;
     --spacing-sm: 8px;
     --spacing-md: 16px;
     --spacing-lg: 24px;
 
     /* Typography */
-    --font-base: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+    --font-base: 'Outfit', 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
     --text-xs: 11px;
     --text-sm: 12px;
     --text-base: 13px;
@@ -200,8 +210,7 @@ body {
     justify-content: center;
     gap: 6px;
     border: 1px solid transparent;
-    border-radius: 2px;
-    /* Slight roundness */
+    border-radius: var(--radius-md);
     font-family: inherit;
     font-weight: 500;
     cursor: pointer;
@@ -259,7 +268,7 @@ body {
 .glass-panel {
     background: var(--k-bg-surface);
     border: 1px solid var(--k-border);
-    border-radius: 2px;
+    border-radius: var(--radius-md);
     padding: 16px;
     /* Decreased padding */
     margin-bottom: 16px;
@@ -304,8 +313,7 @@ select {
     /* Excel-like compact */
     font-size: 13px;
     border: 1px solid #8a8886;
-    border-radius: 0;
-    /* Square corners */
+    border-radius: var(--radius-md);
     background: white;
     color: var(--k-text-main);
     transition: border-color 0.15s;
@@ -378,13 +386,13 @@ select:focus {
     display: flex;
     align-items: center;
     gap: 12px;
-    border-radius: 2px;
+    border-radius: var(--radius-md);
 }
 
 .kpi-icon {
     width: 36px;
     height: 36px;
-    border-radius: 2px;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -632,8 +640,8 @@ select:focus {
 .input-compact {
     padding: 4px 8px;
     font-size: 13px;
-    border: 1px solid #aaa;
-    border-radius: 0;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-sm);
     height: 32px;
 }
 
@@ -696,7 +704,7 @@ select:focus {
     display: inline-flex;
     background: #f3f2f1;
     border: 1px solid #e1dfdd;
-    border-radius: 4px;
+    border-radius: var(--radius-md);
     padding: 3px;
     gap: 0;
 }
@@ -709,7 +717,7 @@ select:focus {
 .view-toggle label {
     padding: 5px 12px;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: var(--radius-sm);
     font-size: 12px;
     font-weight: 600;
     color: var(--k-text-light);
@@ -735,22 +743,6 @@ select:focus {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 /* ===== Renovation: Neo Dashboard Format (v6) ===== */
-:root {
-    --primary-color: #2563eb;
-    --brand-900: #0f172a;
-    --brand-700: #1d4ed8;
-    --brand-500: #3b82f6;
-    --surface-soft: #f8fbff;
-    --surface-card: #ffffff;
-    --border-soft: #dbe7ff;
-    --text-main: #0f172a;
-    --text-sub: #475569;
-    --shadow-soft: 0 10px 30px rgba(37, 99, 235, 0.08);
-    --shadow-hard: 0 14px 34px rgba(15, 23, 42, 0.12);
-    --radius-xl: 18px;
-    --radius-lg: 14px;
-    --radius-md: 10px;
-}
 
 body.app-shell {
     font-family: 'Outfit', var(--font-base);

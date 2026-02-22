@@ -60,8 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Ignore autosave attempts from non-input views where elements may not exist
         }
     };
-    document.addEventListener('input', debounce(window.autoSaveTrigger, 1000));
-    document.addEventListener('change', debounce(window.autoSaveTrigger, 1000));
+    const debouncedAutoSave = debounce(window.autoSaveTrigger, 1000);
+    document.addEventListener('input', (e) => {
+        window.isDirty = true;
+        debouncedAutoSave(e);
+    });
+    document.addEventListener('change', (e) => {
+        window.isDirty = true;
+        debouncedAutoSave(e);
+    });
 
     // Simple Navigation Handling
     const navItems = document.querySelectorAll('.nav-item');
@@ -70,8 +77,25 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
 
-            // Fix: Force save if leaving "inputs" view to prevent data loss
+            const targetView = item.getAttribute('data-view');
             const currentActive = document.querySelector('.nav-item.active');
+            const currentView = currentActive ? currentActive.getAttribute('data-view') : null;
+
+            // Check for unsaved changes when leaving input views
+            const inputViews = ['inputs', 'detailed-opex', 'admin-cost', 'personnel', 'simulation'];
+            if (window.isDirty && currentView && inputViews.includes(currentView) && targetView !== currentView) {
+                const confirmCalc = confirm("คุณมีการแก้ไขข้อมูลที่ยังไม่ได้คำนวณ ต้องการคำนวณก่อนเปลี่ยนหน้าหรือไม่?\n\n(OK = คำนวณแล้วไปต่อ, Cancel = ไม่คำนวณแต่ไปต่อ)");
+                if (confirmCalc) {
+                    if (window.inputApps && window.inputApps.userTriggerCalculate) {
+                        window.inputApps.userTriggerCalculate();
+                        return; // Stop navigation, userTriggerCalculate will handle success/fail routing
+                    }
+                }
+                // User chose Cancel or userTriggerCalculate not defined
+                window.isDirty = false;
+            }
+
+            // Fix: Force save if leaving "inputs" view to prevent data loss
             if (currentActive && currentActive.getAttribute('data-view') === 'inputs') {
                 try {
                     const inputs = window.inputApps.getInputs();

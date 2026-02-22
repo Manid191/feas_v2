@@ -4,8 +4,10 @@ class DetailedOpexManager {
         // Initial State or Load from InputManager
         this.state = window.inputApps && window.inputApps.currentInputs.detailedOpex ?
             window.inputApps.currentInputs.detailedOpex : [];
+    }
 
-        if (!Array.isArray(this.state) || this.state.length === 0) {
+    loadPresetsWithConfirm() {
+        if (confirm('Load template preset? This will overwrite your current items.')) {
             this.loadPresets();
         }
     }
@@ -27,6 +29,7 @@ class DetailedOpexManager {
             });
 
             this.updateState();
+            this.render();
         }
     }
 
@@ -38,33 +41,22 @@ class DetailedOpexManager {
 
         // Group by Category
         const groups = {};
-        // Default Order: Logic Process Flow
-        const defaultCats = [
-            'Fuel & Energy',
-            'Utilities',
-            'Water Treatment',
-            'Cooling Tower',
-            'Boiler System',
-            'Flue Gas System',
-            'Ash Disposal',
-            'Lab & Safety',
-            'Maintenance Parts',
-            'Others'
-        ];
-        defaultCats.forEach(c => groups[c] = []);
 
-        // Sort items into groups
+        // Dynamically create groups based on existing data
         this.state.forEach((item, index) => {
             const cat = item.category || 'Others';
             if (!groups[cat]) groups[cat] = [];
             groups[cat].push({ item, index });
         });
 
+        // Ensure at least "Others" exists if empty
+        if (Object.keys(groups).length === 0) {
+            groups['Others'] = [];
+        }
+
         // 2. Generate Grid HTML
         let gridHtml = '';
         Object.keys(groups).forEach(cat => {
-            if (groups[cat].length === 0) return;
-
             // Mini Header
             const headerHtml = `
                 <div style="display:flex; gap:5px; padding:5px 0 5px 0; border-bottom:1px solid #e0e0e0; font-size:10px; font-weight:700; color:#666; letter-spacing:0.5px; text-transform:uppercase;">
@@ -75,10 +67,12 @@ class DetailedOpexManager {
                     <span style="width:24px;"></span>
                 </div>`;
 
-            // Items
+            // Items and Category Sub-total
+            let catTotal = 0;
             const itemsHtml = groups[cat].map(({ item, index }) => {
                 const resolvedQty = this.getQuantity(item);
                 const annualCost = this.calculateItemCost(item);
+                catTotal += annualCost;
 
                 // Logic Column: Manual Inputs vs Linked UI
                 let logicCol = '';
@@ -94,9 +88,8 @@ class DetailedOpexManager {
                                 ${options}
                             </select>
                             <span style="font-size:10px; color:#666;">x</span>
-                            <input type="number" class="input-compact" style="width:35px; text-align:center; padding:0;" placeholder="%" 
-                                   value="${item.multiplier || 100}" onchange="detailedOpexApp.update(${index}, 'multiplier', this.value)">
-                            <span style="font-size:10px; color:#666;">%</span>
+                            <input type="number" class="input-compact" style="width:45px; text-align:center; padding:0;" placeholder="Qty" 
+                                   value="${item.multiplier || 1}" step="any" onchange="detailedOpexApp.update(${index}, 'multiplier', this.value)">
                             <button class="btn-icon" title="Switch to Manual" onclick="detailedOpexApp.update(${index}, 'mode', 'manual')"><i class="fa-solid fa-link"></i></button>
                         </div>
                     `;
@@ -149,11 +142,23 @@ class DetailedOpexManager {
                 `;
             }).join('');
 
+            const catMillion = catTotal / 1000000;
+
             // Category Block
             gridHtml += `
             <div class="category-block" style="break-inside: avoid; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; margin-bottom: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); overflow:hidden;">
-                <div class="sub-header" style="background: #f8f9fa; padding: 6px 12px; font-weight: 700; font-size:13px; color: #005a9e; border-bottom: 1px solid #eee;">
-                    ${cat}
+                <div class="sub-header" style="background: #f8f9fa; padding: 6px 12px; border-bottom: 1px solid #e0e0e0; display:flex; justify-content:space-between; align-items:center;">
+                    <input type="text" style="font-weight: 700; font-size:14px; color: #005a9e; background:transparent; border:1px solid transparent; width:50%;" 
+                           value="${cat}" 
+                           onfocus="this.style.background='white'; this.style.border='1px solid #0078d4'; this.style.borderRadius='4px'; this.style.padding='2px';"
+                           onblur="this.style.background='transparent'; this.style.border='1px solid transparent'; this.style.padding='0';"
+                           onchange="detailedOpexApp.renameCategory('${cat}', this.value)">
+                    <div style="display:flex; align-items:center; gap: 10px;">
+                        <span style="font-size:12px; font-weight:bold; color:#107c41;">${catMillion.toFixed(2)} M THB</span>
+                        <button class="btn btn-primary btn-sm" style="padding: 2px 8px; font-size:10px;" onclick="detailedOpexApp.add('${cat}')">
+                            <i class="fa-solid fa-plus"></i> Item
+                        </button>
+                    </div>
                 </div>
                 <div style="padding: 0 10px 5px 10px;">
                     ${headerHtml}
@@ -163,20 +168,40 @@ class DetailedOpexManager {
         });
 
         // 3. Final HTML Injection
+        const totalMillion = totalAnnualCost / 1000000;
+
         this.container.innerHTML = `
             <div class="dashboard-container">
                 <div class="action-bar-top" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <div>
-                        <h2 class="result-title" style="margin:0;">Operation Cost (Variable)</h2>
-                        <span style="font-size:13px; color:#666;">Total Variable Cost: <strong style="color:#d13438; font-size:16px;">${totalAnnualCost.toLocaleString('en-US')}</strong> THB/Year</span>
-                    </div>
+                    <h2 class="result-title" style="margin:0;"><i class="fa-solid fa-flask"></i> Operation Cost (Variable)</h2>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn btn-primary" onclick="detailedOpexApp.add()">
-                            <i class="fa-solid fa-plus"></i> Add Item
+                        <button class="btn btn-secondary" onclick="detailedOpexApp.loadPresetsWithConfirm()" title="Load Template Preset">
+                            <i class="fa-solid fa-file-invoice"></i> Load Preset
                         </button>
-                        <button class="btn btn-secondary" onclick="inputApps.userTriggerCalculate(); app.navigateTo('financials')">
+                        <button class="btn btn-primary" onclick="detailedOpexApp.addCategory()">
+                            <i class="fa-solid fa-folder-plus"></i> Add Category
+                        </button>
+                        <button class="btn btn-success" onclick="window.inputApps.userTriggerCalculate()">
                             <i class="fa-solid fa-calculator"></i> Calculate
                         </button>
+                    </div>
+                </div>
+
+                <!-- Summary Section -->
+                <div id="opex-summary" class="card" style="margin-bottom: 20px; padding: 16px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <h4 style="margin: 0; color: #1565c0;"><i class="fa-solid fa-calculator"></i> Variable Cost Summary</h4>
+                            <p style="margin: 4px 0 0 0; font-size: 0.9em; color: #666;">Total estimated annual variable operation expenses</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.8em; font-weight: bold; color: #1565c0;">
+                                ${totalAnnualCost.toLocaleString('en-US', { maximumFractionDigits: 0 })} THB
+                            </div>
+                            <div style="font-size: 0.9em; color: #666;">
+                                (${totalMillion.toFixed(2)} Million THB / Year)
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -189,10 +214,10 @@ class DetailedOpexManager {
         `;
     }
 
-    add() {
+    add(categoryName = 'Others') {
         const newItem = {
             id: Date.now().toString(),
-            category: 'Others',
+            category: categoryName,
             name: 'New Item',
             mode: 'manual', // manual, linked
             quantity: 1,
@@ -200,9 +225,39 @@ class DetailedOpexManager {
             freqType: 'monthly',
             price: 0,
             linkedSourceId: '',
-            multiplier: 100
+            multiplier: 1
         };
         this.state.push(newItem);
+        this.updateState();
+        this.render();
+    }
+
+    addCategory() {
+        const baseName = "New Category";
+        let newName = baseName;
+        let counter = 1;
+        // Ensure unique name
+        while (this.state.some(item => item.category === newName)) {
+            newName = `${baseName} ${counter}`;
+            counter++;
+        }
+
+        // Add an empty item to bootstrap the category
+        this.add(newName);
+    }
+
+    renameCategory(oldName, newName) {
+        if (!newName || newName.trim() === '') {
+            newName = "Unnamed Category";
+        }
+        if (oldName === newName) return;
+
+        // Change category across all items in that category
+        this.state.forEach(item => {
+            if (item.category === oldName) {
+                item.category = newName;
+            }
+        });
         this.updateState();
         this.render();
     }
@@ -261,7 +316,7 @@ class DetailedOpexManager {
                 // It means Waste Water is generated daily too.
 
                 // Simplest approach: Return raw unit quantity.
-                return this.getQuantity(source) * ((parseFloat(item.multiplier) || 0) / 100);
+                return this.getQuantity(source) * (parseFloat(item.multiplier) || 0);
             }
         }
         return 0;
