@@ -230,7 +230,6 @@ class DashboardManager {
                         tension: 0.1,
                         fill: false,
                         type: 'line',
-                        yAxisID: 'y1',
                         order: 1
                     },
                     {
@@ -243,7 +242,6 @@ class DashboardManager {
                         tension: 0.1,
                         fill: false,
                         type: 'line',
-                        yAxisID: 'y1',
                         order: 1
                     },
                 ]
@@ -292,27 +290,6 @@ class DashboardManager {
                                 if (Math.abs(value) >= 1000000) return (value / 1000000).toFixed(1) + 'M';
                                 return value;
                             }
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        beginAtZero: false,
-                        grid: {
-                            drawOnChartArea: false
-                        },
-                        ticks: {
-                            color: '#0b7285',
-                            callback: (value) => {
-                                if (Math.abs(value) >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-                                return value;
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Cumulative Cash Flow',
-                            color: '#0b7285'
                         }
                     },
                     x: {
