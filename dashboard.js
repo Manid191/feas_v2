@@ -149,8 +149,8 @@ class DashboardManager {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Annual accumulate Project Cash Flow',
-                        data: results.cumulativeCashFlows,
+                        label: 'Annual Project Cash Flow',
+                        data: results.cashFlows,
                         borderColor: 'rgb(54, 162, 235)', // Blue
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
                         borderWidth: 2,
@@ -160,8 +160,8 @@ class DashboardManager {
                         order: 1
                     },
                     {
-                        label: 'Annual accumulate Equity Cash Flow',
-                        data: results.cumulativeEquityCashFlows,
+                        label: 'Annual Equity Cash Flow',
+                        data: results.equityCashFlows,
                         borderColor: 'rgb(46, 204, 113)', // Green
                         backgroundColor: 'rgba(46, 204, 113, 0.1)',
                         borderWidth: 2,
