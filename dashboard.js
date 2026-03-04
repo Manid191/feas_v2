@@ -134,6 +134,16 @@ class DashboardManager {
     renderCharts(results) {
         const ctx = document.getElementById('cashFlowChart').getContext('2d');
         const labels = results.cashFlows.map((_, i) => `Year ${i}`);
+        const maxPoints = labels.length;
+
+        const normalizeAnnual = (series = [], asNegative = false) => {
+            const out = Array(maxPoints).fill(0);
+            for (let i = 1; i < maxPoints; i++) {
+                const v = Number(series[i] ?? series[i - 1] ?? 0) || 0;
+                out[i] = asNegative ? -Math.abs(v) : v;
+            }
+            return out;
+        };
 
         // Prepare Data
         // Year 0 is usually investment (-ve), Year 1+ is operation
@@ -157,7 +167,7 @@ class DashboardManager {
                         tension: 0.1,
                         fill: false,
                         type: 'line',
-                        order: 1
+                        order: 2
                     },
                     {
                         label: 'Annual Equity Cash Flow',
@@ -168,40 +178,73 @@ class DashboardManager {
                         tension: 0.1,
                         fill: false,
                         type: 'line',
-                        order: 1
+                        order: 2
                     },
                     {
-                        label: 'Fixed Cost',
-                        data: results.details.annualFixedCost,
-                        backgroundColor: 'rgba(255, 159, 64, 0.6)', // Orange
+                        label: 'OPEX',
+                        data: normalizeAnnual(results.details.annualOpex, true),
+                        backgroundColor: 'rgba(255, 159, 64, 0.45)', // Orange
                         borderColor: 'rgba(255, 159, 64, 1)',
                         borderWidth: 1,
                         type: 'bar',
-                        stack: 'costs',
-                        hidden: true,
-                        order: 2
+                        stack: 'cashOut',
+                        order: 4
                     },
                     {
-                        label: 'Variable Cost',
-                        data: results.details.annualVariableCost,
-                        backgroundColor: 'rgba(153, 102, 255, 0.6)', // Purple
+                        label: 'Principal Repayment',
+                        data: normalizeAnnual(results.details.annualPrincipal, true),
+                        backgroundColor: 'rgba(244, 67, 54, 0.45)', // Red
+                        borderColor: 'rgba(244, 67, 54, 1)',
+                        borderWidth: 1,
+                        type: 'bar',
+                        stack: 'cashOut',
+                        order: 4
+                    },
+                    {
+                        label: 'Interest Expense',
+                        data: normalizeAnnual(results.details.annualInterest, true),
+                        backgroundColor: 'rgba(153, 102, 255, 0.45)', // Purple
                         borderColor: 'rgba(153, 102, 255, 1)',
                         borderWidth: 1,
                         type: 'bar',
-                        stack: 'costs',
-                        hidden: true,
-                        order: 2
+                        stack: 'cashOut',
+                        order: 4
                     },
                     {
-                        label: 'Finance Cost',
-                        data: results.details.annualFinanceCost,
-                        backgroundColor: 'rgba(201, 203, 207, 0.6)', // Grey
-                        borderColor: 'rgba(201, 203, 207, 1)',
+                        label: 'Corporate Tax',
+                        data: normalizeAnnual(results.details.annualTax, true),
+                        backgroundColor: 'rgba(201, 203, 207, 0.55)', // Grey
+                        borderColor: 'rgba(120, 120, 120, 1)',
                         borderWidth: 1,
                         type: 'bar',
-                        stack: 'costs',
-                        hidden: true,
-                        order: 2
+                        stack: 'cashOut',
+                        order: 4
+                    },
+                    {
+                        label: 'Cumulative Project Cash Flow',
+                        data: results.cumulativeCashFlows,
+                        borderColor: 'rgb(0, 102, 255)',
+                        backgroundColor: 'rgba(0, 102, 255, 0.08)',
+                        borderWidth: 2,
+                        borderDash: [6, 4],
+                        tension: 0.1,
+                        fill: false,
+                        type: 'line',
+                        yAxisID: 'y1',
+                        order: 1
+                    },
+                    {
+                        label: 'Cumulative Equity Cash Flow',
+                        data: results.cumulativeEquityCashFlows,
+                        borderColor: 'rgb(0, 150, 136)',
+                        backgroundColor: 'rgba(0, 150, 136, 0.08)',
+                        borderWidth: 2,
+                        borderDash: [3, 4],
+                        tension: 0.1,
+                        fill: false,
+                        type: 'line',
+                        yAxisID: 'y1',
+                        order: 1
                     },
                 ]
             },
@@ -238,7 +281,7 @@ class DashboardManager {
                         type: 'linear',
                         display: true,
                         position: 'left',
-                        beginAtZero: false, // Allow negatives for CF
+                        beginAtZero: false, // Annual CF can be negative/positive
                         grid: {
                             color: (context) => (context.tick?.value === 0 ? '#222' : '#e0e0e0'),
                             lineWidth: (context) => (context.tick?.value === 0 ? 3 : 1)
@@ -249,6 +292,27 @@ class DashboardManager {
                                 if (Math.abs(value) >= 1000000) return (value / 1000000).toFixed(1) + 'M';
                                 return value;
                             }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: false,
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        ticks: {
+                            color: '#0b7285',
+                            callback: (value) => {
+                                if (Math.abs(value) >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                return value;
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Cumulative Cash Flow',
+                            color: '#0b7285'
                         }
                     },
                     x: {
