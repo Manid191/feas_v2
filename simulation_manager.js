@@ -63,15 +63,6 @@ class SimulationManager {
         // Clone existing events
         const activeEvents = JSON.parse(JSON.stringify(this.events));
 
-        // Add Global Overrides from UI
-        const simInt = document.getElementById('sim-interest')?.value;
-        const simInf = document.getElementById('sim-inflation')?.value;
-        const simTax = document.getElementById('sim-tax')?.value;
-
-        if (simInt && !isNaN(parseFloat(simInt))) activeEvents.push({ type: 'global_interest', value: parseFloat(simInt) });
-        if (simInf && !isNaN(parseFloat(simInf))) activeEvents.push({ type: 'global_inflation', value: parseFloat(simInf) });
-        if (simTax && !isNaN(parseFloat(simTax))) activeEvents.push({ type: 'global_tax', value: parseFloat(simTax) });
-
         // 3. Run Simulation
         const simInputs = JSON.parse(JSON.stringify(baseInputs));
         const simResult = window.inputApps.calculate(simInputs, true, activeEvents);
@@ -82,32 +73,7 @@ class SimulationManager {
     render() {
         if (!this.container) return;
 
-        // Ensure we have last inputs to show current values
-        const current = window.inputApps?.lastResults?.inputs?.finance || {};
-        const curInt = current.interestRate || 7;
-        const curInf = current.opexInflation || 3;
-        const curTax = current.taxRate || 20;
-
         let html = `
-        <!-- Global Controls -->
-        <div class="card glass-panel full-width" style="margin-bottom: 20px;">
-            <h3><i class="fa-solid fa-sliders"></i> Global Simulation Parameters</h3>
-            <div class="row">
-                <div class="col-md-4">
-                    <label>New Interest Rate (%) <span class="text-muted">(Current: ${curInt}%)</span></label>
-                    <input type="number" id="sim-interest" class="form-control" placeholder="Leave empty to keep current">
-                </div>
-                <div class="col-md-4">
-                    <label>New OpEx Inflation (%) <span class="text-muted">(Current: ${curInf}%)</span></label>
-                    <input type="number" id="sim-inflation" class="form-control" placeholder="Leave empty to keep current">
-                </div>
-                <div class="col-md-4">
-                    <label>New Tax Rate (%) <span class="text-muted">(Current: ${curTax}%)</span></label>
-                    <input type="number" id="sim-tax" class="form-control" placeholder="Leave empty to keep current">
-                </div>
-            </div>
-        </div>
-
         <div class="card glass-panel full-width">
             <div class="card-header">
                 <h3><i class="fa-solid fa-flask"></i> Simulation Scenarios</h3>
