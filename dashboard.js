@@ -20,13 +20,23 @@ class DashboardManager {
                     <div class="kpi-card">
                         <div class="kpi-icon icon-npv"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div class="kpi-content">
-                            <span>Net Present Value (NPV)</span>
+                            <span>Project NPV</span>
                             <h3 class="${results.npv >= 0 ? 'text-success' : 'text-danger'}">
                                 ${this.formatCurrency(results.npv)}
                             </h3>
                         </div>
                     </div>
-                    
+
+                    <div class="kpi-card">
+                        <div class="kpi-icon icon-npv"><i class="fa-solid fa-coins"></i></div>
+                        <div class="kpi-content">
+                            <span>Equity NPV</span>
+                            <h3 class="${results.npvEquity >= 0 ? 'text-success' : 'text-danger'}">
+                                ${this.formatCurrency(results.npvEquity)}
+                            </h3>
+                        </div>
+                    </div>
+
                     <div class="kpi-card">
                         <div class="kpi-icon icon-irr"><i class="fa-solid fa-percent"></i></div>
                         <div class="kpi-content">
@@ -46,6 +56,7 @@ class DashboardManager {
                             </h3>
                         </div>
                     </div>
+
 
                     <div class="kpi-card">
                         <div class="kpi-icon icon-lcoe"><i class="fa-solid fa-bolt"></i></div>
@@ -123,6 +134,16 @@ class DashboardManager {
     renderCharts(results) {
         const ctx = document.getElementById('cashFlowChart').getContext('2d');
         const labels = results.cashFlows.map((_, i) => `Year ${i}`);
+        const maxPoints = labels.length;
+
+        const normalizeAnnual = (series = [], asNegative = false) => {
+            const out = Array(maxPoints).fill(0);
+            for (let i = 1; i < maxPoints; i++) {
+                const v = Number(series[i] ?? series[i - 1] ?? 0) || 0;
+                out[i] = asNegative ? -Math.abs(v) : v;
+            }
+            return out;
+        };
 
         // Prepare Data
         // Year 0 is usually investment (-ve), Year 1+ is operation
@@ -138,7 +159,7 @@ class DashboardManager {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Project Cash Flow (Unlevered)',
+                        label: 'Annual Project Cash Flow',
                         data: results.cashFlows,
                         borderColor: 'rgb(54, 162, 235)', // Blue
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
@@ -146,50 +167,83 @@ class DashboardManager {
                         tension: 0.1,
                         fill: false,
                         type: 'line',
-                        order: 1
+                        order: 2
                     },
                     {
-                        label: 'Fixed Cost',
-                        data: results.details.annualFixedCost,
-                        backgroundColor: 'rgba(255, 159, 64, 0.6)', // Orange
+                        label: 'Annual Equity Cash Flow',
+                        data: results.equityCashFlows,
+                        borderColor: 'rgb(46, 204, 113)', // Green
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: false,
+                        type: 'line',
+                        order: 2
+                    },
+                    {
+                        label: 'OPEX',
+                        data: normalizeAnnual(results.details.annualOpex, true),
+                        backgroundColor: 'rgba(255, 159, 64, 0.45)', // Orange
                         borderColor: 'rgba(255, 159, 64, 1)',
                         borderWidth: 1,
                         type: 'bar',
-                        stack: 'costs',
-                        order: 2
+                        stack: 'cashOut',
+                        order: 4
                     },
                     {
-                        label: 'Variable Cost',
-                        data: results.details.annualVariableCost,
-                        backgroundColor: 'rgba(153, 102, 255, 0.6)', // Purple
+                        label: 'Principal Repayment',
+                        data: normalizeAnnual(results.details.annualPrincipal, true),
+                        backgroundColor: 'rgba(244, 67, 54, 0.45)', // Red
+                        borderColor: 'rgba(244, 67, 54, 1)',
+                        borderWidth: 1,
+                        type: 'bar',
+                        stack: 'cashOut',
+                        order: 4
+                    },
+                    {
+                        label: 'Interest Expense',
+                        data: normalizeAnnual(results.details.annualInterest, true),
+                        backgroundColor: 'rgba(153, 102, 255, 0.45)', // Purple
                         borderColor: 'rgba(153, 102, 255, 1)',
                         borderWidth: 1,
                         type: 'bar',
-                        stack: 'costs',
-                        order: 2
+                        stack: 'cashOut',
+                        order: 4
                     },
                     {
-                        label: 'Finance Cost',
-                        data: results.details.annualFinanceCost,
-                        backgroundColor: 'rgba(201, 203, 207, 0.6)', // Grey
-                        borderColor: 'rgba(201, 203, 207, 1)',
+                        label: 'Corporate Tax',
+                        data: normalizeAnnual(results.details.annualTax, true),
+                        backgroundColor: 'rgba(201, 203, 207, 0.55)', // Grey
+                        borderColor: 'rgba(120, 120, 120, 1)',
                         borderWidth: 1,
                         type: 'bar',
-                        stack: 'costs',
-                        order: 2
+                        stack: 'cashOut',
+                        order: 4
                     },
                     {
-                        label: 'Cumulative Cash Flow',
+                        label: 'Cumulative Project Cash Flow',
                         data: results.cumulativeCashFlows,
-                        borderColor: 'rgb(255, 99, 132)', // Red
-                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderColor: 'rgb(0, 102, 255)',
+                        backgroundColor: 'rgba(0, 102, 255, 0.08)',
                         borderWidth: 2,
-                        borderDash: [5, 5],
+                        borderDash: [6, 4],
                         tension: 0.1,
-                        fill: false, // Changed to false to avoid overwhelming
+                        fill: false,
                         type: 'line',
-                        order: 0 // On Top
-                    }
+                        order: 1
+                    },
+                    {
+                        label: 'Cumulative Equity Cash Flow',
+                        data: results.cumulativeEquityCashFlows,
+                        borderColor: 'rgb(0, 150, 136)',
+                        backgroundColor: 'rgba(0, 150, 136, 0.08)',
+                        borderWidth: 2,
+                        borderDash: [3, 4],
+                        tension: 0.1,
+                        fill: false,
+                        type: 'line',
+                        order: 1
+                    },
                 ]
             },
             options: {
@@ -225,9 +279,10 @@ class DashboardManager {
                         type: 'linear',
                         display: true,
                         position: 'left',
-                        beginAtZero: false, // Allow negatives for CF
+                        beginAtZero: false, // Annual CF can be negative/positive
                         grid: {
-                            color: '#e0e0e0'
+                            color: (context) => (context.tick?.value === 0 ? '#222' : '#e0e0e0'),
+                            lineWidth: (context) => (context.tick?.value === 0 ? 3 : 1)
                         },
                         ticks: {
                             color: '#333',
