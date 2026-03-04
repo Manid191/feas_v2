@@ -1089,7 +1089,7 @@ class InputManager {
                     if (depth > 5) return 0;
                     if (item.mode === 'linked' && item.linkedSourceId) {
                         const source = inputs.detailedOpex.find(i => i.id === item.linkedSourceId);
-                        if (source) return getDetQty(source, depth + 1) * (parseFloat(item.multiplier) || 0) / 100;
+                        if (source) return getDetQty(source, depth + 1) * (parseFloat(item.multiplier) || 0);
                     }
                     return parseFloat(item.quantity) || 0;
                 };
@@ -1296,9 +1296,79 @@ class InputManager {
         return results;
     }
 
+    validateInputs(inputs) {
+        const warnings = [];
+        const errors = [];
+
+        if (!inputs.capacity || inputs.capacity <= 0) {
+            errors.push('Capacity must be greater than 0.');
+        }
+
+        if (inputs.hoursPerDay > 24) {
+            errors.push(`Hours per day cannot exceed 24. (Current: ${inputs.hoursPerDay})`);
+        }
+
+        if (inputs.modelType === 'POWER' || inputs.modelType === 'SOLAR') {
+            if (inputs.revenue && inputs.revenue.peakHours > inputs.hoursPerDay) {
+                errors.push(`Peak Hours (${inputs.revenue.peakHours}) cannot exceed total Hours per Day (${inputs.hoursPerDay}).`);
+            }
+        }
+
+        // Pre-calculation check for anomalies (dry run)
+        try {
+            const tempResult = this.calculate(inputs, true);
+            if (tempResult.irr < -50) {
+                warnings.push('IRR is extremely negative. Please check your CAPEX and Revenue inputs.');
+            }
+            if (tempResult.payback < 0 || tempResult.payback > 50) {
+                warnings.push('Payback period is very high or never pays back.');
+            }
+            if (tempResult.lcoe > 100) {
+                warnings.push(`Levelized Cost (LCOE) is very high: ${tempResult.lcoe.toFixed(2)} THB. General power rates are under 10 THB.`);
+            }
+        } catch (e) {
+            errors.push('Calculation test failed: ' + e.message);
+        }
+
+        return { errors, warnings, valid: errors.length === 0 };
+    }
+
     userTriggerCalculate() {
-        // Mark that a calculation has been done
+        const inputs = this.getInputs();
+        const validation = this.validateInputs(inputs);
+
+        if (validation.errors.length > 0 || validation.warnings.length > 0) {
+            this.showValidationModal(validation);
+            // Don't auto-calculate if there are errors. Treat warnings as stoppers too, unless user forces.
+            return;
+        }
+
+        this.forceCalculate();
+    }
+
+    showValidationModal(validation) {
+        const modal = document.getElementById('modal-validation');
+        const list = document.getElementById('validation-messages');
+        if (modal && list) {
+            let html = '<ul style="text-align: left; padding-left: 20px;">';
+            validation.errors.forEach(e => html += `<li style="color: #c0392b; margin-bottom: 8px;"><b>Error:</b> ${e}</li>`);
+            validation.warnings.forEach(w => html += `<li style="color: #f39c12; margin-bottom: 8px;"><b>Warning:</b> ${w}</li>`);
+            html += '</ul>';
+            list.innerHTML = html;
+            modal.style.display = 'flex';
+        } else {
+            // Fallback
+            alert("Validation Alerts:\n" + validation.errors.concat(validation.warnings).join('\n'));
+        }
+    }
+
+    forceCalculate() {
+        const modal = document.getElementById('modal-validation');
+        if (modal) modal.style.display = 'none';
+
+        // Mark that a calculation has been done and clear dirty flag
         window.hasCalculated = true;
+        window.isDirty = false;
 
         // Force save state
         const state = {
@@ -1396,7 +1466,7 @@ class InputManager {
                     // 3. Populate values into the new DOM
                     this.setState({ inputs: imported });
 
-                    alert('Scenario imported successfully!');
+                    // Removed alert to allow userTriggerCalculate to seamlessly take over
 
                     // 4. Calculate
                     this.userTriggerCalculate();
