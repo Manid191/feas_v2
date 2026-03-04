@@ -1,6 +1,6 @@
 class PowerModel extends ModelStrategy {
     constructor() {
-        super('Power and Solar Model');
+        super('Power Plant Model');
     }
 
     calculateRevenue(inputs, year, params) {
