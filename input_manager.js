@@ -240,16 +240,19 @@ class InputManager {
     renderRevenueInputs(modelType, fmt) {
         let html = '<div class="divider"></div>';
 
-        if (modelType === 'POWER') {
+        // Both Power and Solar share the exact same Electricity Pricing Models now
+        if (modelType === 'POWER' || modelType === 'SOLAR') {
             const tariffType = this.currentInputs.revenue.tariffType || 'TOU';
 
             html += `
                 <div class="row">
                     <div class="form-group" style="flex: 1;">
                         <label>Tariff Scheme</label>
-                        <select id="tariffType" onchange="inputApps.userTriggerCalculate()">
+                        <select id="tariffType" onchange="inputApps.onTariffChange()">
+                            <option value="FIT" ${tariffType === 'FIT' ? 'selected' : ''}>Feed-in Tariff (FiT)</option>
+                            <option value="ADDER" ${tariffType === 'ADDER' ? 'selected' : ''}>Adder (VSPP/SPP)</option>
                             <option value="TOU" ${tariffType === 'TOU' ? 'selected' : ''}>Time-of-Use (Peak/Off-Peak)</option>
-                            <option value="FIT" ${tariffType === 'FIT' ? 'selected' : ''}>Feed-in Tariff (Flat Rate)</option>
+                            <option value="DISCOUNT" ${tariffType === 'DISCOUNT' ? 'selected' : ''}>Private PPA (Discount %)</option>
                         </select>
                     </div>
                 </div>
@@ -259,16 +262,61 @@ class InputManager {
                 html += `
                     <div class="row">
                         <div class="form-group">
-                            <label>FiT Rate (THB)</label>
-                            <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
+                            <label>FiT F (THB)</label>
+                            <input type="text" id="fitF" value="${fmt(this.currentInputs.revenue.fitF || 0)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                         <div class="form-group">
-                            <label>Total Hrs/Day</label>
+                            <label>FiT V (THB)</label>
+                            <input type="text" id="fitV" value="${fmt(this.currentInputs.revenue.fitV || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>FiT Premium (THB)</label>
+                            <input type="text" id="fitPremium" value="${fmt(this.currentInputs.revenue.fitPremium || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Premium Yrs</label>
+                            <input type="text" id="fitPremiumYears" value="${fmt(this.currentInputs.revenue.fitPremiumYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group" style="flex: 0.5;">
+                            <label>${modelType === 'SOLAR' ? 'Sun Hrs/Day' : 'Total Hrs/Day'}</label>
                             <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                     </div>
                 `;
-            } else {
+            } else if (tariffType === 'ADDER') {
+                html += `
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Base Rate (THB)</label>
+                            <input type="text" id="baseRate" value="${fmt(this.currentInputs.revenue.baseRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Ft Rate (THB)</label>
+                            <input type="text" id="ftRate" value="${fmt(this.currentInputs.revenue.ftRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Adder (THB)</label>
+                            <input type="text" id="adderPrice" value="${fmt(this.currentInputs.revenue.adderPrice || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Adder Yrs</label>
+                            <input type="text" id="adderYears" value="${fmt(this.currentInputs.revenue.adderYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group" style="flex: 0.5;">
+                            <label>${modelType === 'SOLAR' ? 'Sun Hrs/Day' : 'Total Hrs/Day'}</label>
+                            <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                `;
+            } else if (tariffType === 'TOU') {
                 html += `
                     <div class="row">
                         <div class="form-group">
@@ -276,58 +324,57 @@ class InputManager {
                             <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                         <div class="form-group">
+                            <label>Off-Peak Rate (THB)</label>
+                            <input type="text" id="priceOffPeak" value="${fmt(this.currentInputs.revenue.offPeakRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Ft Rate (THB)</label>
+                            <input type="text" id="ftRate" value="${fmt(this.currentInputs.revenue.ftRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Service Fee (THB/Mo)</label>
+                            <input type="text" id="serviceFee" value="${fmt(this.currentInputs.revenue.serviceFee)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Holidays/Yr (Days)</label>
+                            <input type="text" id="holidays" value="${fmt(this.currentInputs.revenue.holidays || 115)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
                             <label>Peak Hrs/Day</label>
                             <input type="text" id="hoursPeak" value="${fmt(this.currentInputs.revenue.peakHours)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                     </div>
                     <div class="row">
+                        <div class="form-group" style="flex: 0.5;">
+                            <label>${modelType === 'SOLAR' ? 'Sun Hrs/Day' : 'Total Hrs/Day'}</label>
+                            <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                `;
+            } else if (tariffType === 'DISCOUNT') {
+                html += `
+                    <div class="row">
                         <div class="form-group">
-                            <label>Off-Peak Rate</label>
-                            <input type="text" id="priceOffPeak" value="${fmt(this.currentInputs.revenue.offPeakRate)}" onchange="inputApps.evaluateMathInput(this)">
+                            <label>PEA/MEA Rate (THB)</label>
+                            <input type="text" id="peaMeaRate" value="${fmt(this.currentInputs.revenue.peaMeaRate)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                         <div class="form-group">
-                            <label>Total Hrs/Day</label>
+                            <label>Discount (%)</label>
+                            <input type="text" id="discountPercent" value="${fmt(this.currentInputs.revenue.discountPercent)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group" style="flex: 0.5;">
+                            <label>${modelType === 'SOLAR' ? 'Sun Hrs/Day' : 'Total Hrs/Day'}</label>
                             <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                     </div>
                 `;
             }
-
-            html += `
-                 <div class="row">
-                    <div class="form-group">
-                        <label>Adder (THB)</label>
-                        <input type="text" id="adderPrice" value="${fmt(this.currentInputs.revenue.adderPrice || 0)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                    <div class="form-group">
-                        <label>Adder Yrs</label>
-                        <input type="text" id="adderYears" value="${fmt(this.currentInputs.revenue.adderYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                </div>
-            `;
-        } else if (modelType === 'SOLAR') {
-            html += `
-                <div class="row">
-                    <div class="form-group">
-                        <label>Feed-in Tariff (THB)</label>
-                        <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                    <div class="form-group">
-                        <label>Sun Hrs/Day</label>
-                        <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                </div>
-                 <div class="row">
-                    <div class="form-group">
-                        <label>Adder (THB)</label>
-                        <input type="text" id="adderPrice" value="${fmt(this.currentInputs.revenue.adderPrice || 0)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                    <div class="form-group">
-                        <label>Adder Yrs</label>
-                        <input type="text" id="adderYears" value="${fmt(this.currentInputs.revenue.adderYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                </div>
-            `;
         } else if (modelType === 'WATER') {
             html += `
                  <div class="form-group">
@@ -613,6 +660,24 @@ class InputManager {
                     escalation: getValue('revenueEscalation'),
                     adderPrice: getValue('adderPrice'),
                     adderYears: getValue('adderYears'),
+
+                    // Adder specific
+                    baseRate: getValue('baseRate'),
+                    ftRate: getValue('ftRate'),
+
+                    // FIT specific
+                    fitF: getValue('fitF'),
+                    fitV: getValue('fitV'),
+                    fitPremium: getValue('fitPremium'),
+                    fitPremiumYears: getValue('fitPremiumYears'),
+
+                    // TOU specific
+                    serviceFee: getValue('serviceFee'),
+                    holidays: getValue('holidays') || 115,
+
+                    // Discount specific
+                    peaMeaRate: getValue('peaMeaRate'),
+                    discountPercent: getValue('discountPercent'),
 
                     // Generic
                     unitPrice: getValue('unitPrice'),
@@ -1313,9 +1378,11 @@ class InputManager {
                 annualEbitda, annualDepreciation: annualDepreciationArr,
                 annualEbit, annualInterest, annualPrincipal, annualTax, annualNetIncome,
                 annualLoanBalance, annualDSCR,
-                annualFixedCost, annualVariableCost, annualFinanceCost
+                annualFixedCost, annualVariableCost, annualFinanceCost,
+                annualEnergy: energyArray
             }
         };
+
 
         if (!isSimulation) {
             this.lastResults = results; // Cache for simulation comparison
@@ -1327,6 +1394,17 @@ class InputManager {
         }
 
         return results;
+    }
+
+    onTariffChange() {
+        // Save current user input state from the DOM deeply
+        this.getInputs();
+
+        // Re-render the form HTML so the correct fields appear
+        this.renderInputs();
+
+        // Force calculation & downstream dashboard updates
+        this.userTriggerCalculate();
     }
 
     validateInputs(inputs) {
