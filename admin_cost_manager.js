@@ -48,6 +48,9 @@ class AdminCostManager {
             <div class="card-header">
                 <h3><i class="fa-solid fa-briefcase"></i> Admin Cost (Fixed)</h3>
                 <div>
+                    <button class="btn btn-danger btn-sm" onclick="adminApp.clearDataWithConfirm()" style="margin-right: 8px;">
+                        <i class="fa-solid fa-trash"></i> Clear
+                    </button>
                     <button class="btn btn-secondary btn-sm" onclick="adminApp.resetToDefaults()" style="margin-right: 8px;">
                         <i class="fa-solid fa-file-invoice"></i> Load Preset
                     </button>
@@ -248,10 +251,25 @@ class AdminCostManager {
     }
 
     removeItem(index) {
-        this.adminItems.splice(index, 1);
-        window.inputApps.currentInputs.adminItems = this.adminItems;
-        this.renderList();
-        this.renderSummary();
+        if (confirm("Are you sure you want to remove this item?")) {
+            this.adminItems.splice(index, 1);
+            window.inputApps.currentInputs.adminItems = this.adminItems;
+            this.renderList();
+            this.renderSummary();
+            // window.inputApps.userTriggerCalculate();
+        }
+    }
+
+    clearDataWithConfirm() {
+        if (confirm("Are you sure you want to clear all Admin Costs? This action cannot be undone.")) {
+            this.adminItems = [];
+            window.inputApps.currentInputs.adminItems = this.adminItems;
+            this.renderList();
+            this.renderSummary();
+            if (window.inputApps && window.inputApps.userTriggerCalculate) {
+                window.inputApps.userTriggerCalculate();
+            }
+        }
     }
 
     resetToDefaults() {

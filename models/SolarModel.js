@@ -1,23 +1,18 @@
 class SolarModel extends ModelStrategy {
     calculateRevenue(inputs, year, params) {
-        const { degradationFactor, escalationFactor, days } = params;
+        // Simulation Overrides
+        const simCapacity = params.simCapacity !== undefined ? params.simCapacity : inputs.capacity;
+        const simCapKW = simCapacity * 1000;
 
-        const simCapKW = (params.simCapacity !== undefined ? params.simCapacity : inputs.capacity) * 1000;
-        const fitRate = params.simPricePeak !== undefined ? params.simPricePeak : (inputs.revenue.peakRate || 0);
+        // Solar specific inputs mapping
         const sunHours = Math.max(0, inputs.hoursPerDay || 0);
         const powerFactor = inputs.powerFactor || 1;
 
-        const annualOutput = simCapKW * sunHours * powerFactor * days * degradationFactor;
-        const baseRevenue = annualOutput * fitRate * escalationFactor;
+        // Peak Generation (Assume all solar hours happen during Peak daytime)
+        const genPeakDaily = simCapKW * sunHours * powerFactor;
+        const genOffPeakDaily = 0; // Solar typically doesn't generate at night
 
-        let adderRev = 0;
-        if (year <= (inputs.revenue.adderYears || 0)) {
-            adderRev = annualOutput * (inputs.revenue.adderPrice || 0);
-        }
-
-        return {
-            revenue: baseRevenue + adderRev,
-            totalEnergy: annualOutput
-        };
+        // Delegate to unified ModelStrategy logic
+        return this.calculateElectricityTariff(inputs, genPeakDaily, genOffPeakDaily, year, params);
     }
 }

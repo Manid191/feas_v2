@@ -175,6 +175,9 @@ class DetailedOpexManager {
                 <div class="action-bar-top" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h2 class="result-title" style="margin:0;"><i class="fa-solid fa-flask"></i> Operation Cost (Variable)</h2>
                     <div style="display:flex; gap:10px;">
+                        <button class="btn btn-danger" onclick="detailedOpexApp.clearDataWithConfirm()" title="Clear All Data">
+                            <i class="fa-solid fa-trash"></i> Clear
+                        </button>
                         <button class="btn btn-secondary" onclick="detailedOpexApp.loadPresetsWithConfirm()" title="Load Template Preset">
                             <i class="fa-solid fa-file-invoice"></i> Load Preset
                         </button>
@@ -351,6 +354,17 @@ class DetailedOpexManager {
 
     calculateTotalCost() {
         return this.state.reduce((sum, item) => sum + this.calculateItemCost(item), 0);
+    }
+
+    clearDataWithConfirm() {
+        if (confirm("Are you sure you want to clear all Operation Costs? This action cannot be undone.")) {
+            this.state = [];
+            window.inputApps.currentInputs.detailedOpex = this.state;
+            this.render();
+            if (window.inputApps && window.inputApps.userTriggerCalculate) {
+                window.inputApps.userTriggerCalculate();
+            }
+        }
     }
 }
 

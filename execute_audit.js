@@ -176,40 +176,105 @@ try {
                 assert(calcResLoaded.details.annualVariableCost[1] > 0, "Opex preset successfully injected positive expense into main calculation");
             });
 
-            // TC6.1 (Feed-in Tariff (FiT) vs TOU Comparison)
-            runTC("TC6.1 (Feed-in Tariff vs TOU Evaluation)", () => {
+
+
+            // TC7 (Comprehensive Tariff Models Math Output)
+            runTC("TC7.1 (Advanced Tariff Models - FIT)", () => {
                 const baseInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
-                baseInputs.capacity = 10;
-                baseInputs.hoursPerDay = 24;
-                baseInputs.opex = [];
-                baseInputs.detailedOpex = [];
-                baseInputs.personnel = [];
-                baseInputs.adminItems = [];
+                baseInputs.capacity = 1; // 1 MW = 1000 kW
+                baseInputs.hoursPerDay = 10;
+                baseInputs.daysPerYear = 365;
+                baseInputs.powerFactor = 1.0;
+                baseInputs.opex = []; baseInputs.detailedOpex = []; baseInputs.personnel = []; baseInputs.adminItems = [];
                 
-                // --- Configuration 1: TOU acting as Flat Rate (24 hrs Peak)
-                const touInputs = JSON.parse(JSON.stringify(baseInputs));
-                touInputs.revenue.tariffType = 'TOU';
-                touInputs.revenue.peakRate = 5.0; // 5 THB
-                touInputs.revenue.offPeakRate = 2.0;
-                touInputs.revenue.peakHours = 24;
-                
-                let resTOU = window.inputApps.calculate(touInputs, true);
-                
-                // --- Configuration 2: Native FiT Mode
                 const fitInputs = JSON.parse(JSON.stringify(baseInputs));
                 fitInputs.revenue.tariffType = 'FIT';
-                fitInputs.revenue.peakRate = 5.0; // 5 THB (Uses PeakRate as FiT Rate)
-                // In FIT, peakHours is ignored by logic, but simulate missing explicitly
-                fitInputs.revenue.peakHours = 0; 
-                fitInputs.revenue.offPeakRate = 0;
+                fitInputs.revenue.fitF = 2.0; 
+                fitInputs.revenue.fitV = 0.5;
+                fitInputs.revenue.fitPremium = 0.5;
+                fitInputs.revenue.fitPremiumYears = 7;
+                fitInputs.revenue.escalation = 0; 
                 
                 let resFIT = window.inputApps.calculate(fitInputs, true);
+                let unitPrice1 = resFIT.details.annualRevenue[1] / resFIT.details.annualEnergy[1];
+                let unitPrice8 = resFIT.details.annualRevenue[8] / resFIT.details.annualEnergy[8];
                 
-                assert(resTOU.details.annualRevenue[1] > 0, "TOU calculated positive revenue");
-                assert(resFIT.details.annualRevenue[1] > 0, "FIT calculated positive revenue");
-                // Due to standard floating point math they should be identical
-                const diff = Math.abs(resTOU.details.annualRevenue[1] - resFIT.details.annualRevenue[1]);
-                assert(diff < 0.01, "FIT revenue perfectly matches 24-hr TOU revenue equivalent");
+                assert(Math.abs(unitPrice1 - 3.0) < 0.01, "FIT Model Year 1 combines FitF + FitV + Premium");
+                assert(Math.abs(unitPrice8 - 2.5) < 0.01, "FIT Model Year 8 correctly drops Premium");
+            });
+
+            runTC("TC7.2 (Advanced Tariff Models - ADDER)", () => {
+                const baseInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                baseInputs.capacity = 1;
+                baseInputs.hoursPerDay = 10;
+                baseInputs.daysPerYear = 365;
+                baseInputs.powerFactor = 1.0;
+                baseInputs.opex = []; baseInputs.detailedOpex = []; baseInputs.personnel = []; baseInputs.adminItems = [];
+
+                const addInputs = JSON.parse(JSON.stringify(baseInputs));
+                addInputs.revenue.tariffType = 'ADDER';
+                addInputs.revenue.baseRate = 2.0;
+                addInputs.revenue.ftRate = 0.5;
+                addInputs.revenue.adderPrice = 1.0;
+                addInputs.revenue.adderYears = 7;
+                addInputs.revenue.escalation = 0;
+
+                let resADD = window.inputApps.calculate(addInputs, true);
+                let unitPrice1 = resADD.details.annualRevenue[1] / resADD.details.annualEnergy[1];
+                let unitPrice8 = resADD.details.annualRevenue[8] / resADD.details.annualEnergy[8];
+
+                assert(Math.abs(unitPrice1 - 3.5) < 0.01, "ADDER Model Year 1 combines Base + Ft + Adder");
+                assert(Math.abs(unitPrice8 - 2.5) < 0.01, "ADDER Model Year 8 correctly drops Adder value");
+            });
+
+            runTC("TC7.3 (Advanced Tariff Models - TOU)", () => {
+                const baseInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                baseInputs.capacity = 1;
+                baseInputs.hoursPerDay = 24; 
+                baseInputs.daysPerYear = 365;
+                baseInputs.powerFactor = 1.0;
+                baseInputs.opex = []; baseInputs.detailedOpex = []; baseInputs.personnel = []; baseInputs.adminItems = [];
+
+                const touInputs = JSON.parse(JSON.stringify(baseInputs));
+                touInputs.revenue.tariffType = 'TOU';
+                touInputs.revenue.peakRate = 5.0;
+                touInputs.revenue.offPeakRate = 2.0;
+                touInputs.revenue.ftRate = 0.5;
+                touInputs.revenue.peakHours = 13; 
+                touInputs.revenue.holidays = 115; 
+                touInputs.revenue.serviceFee = 312; 
+                touInputs.revenue.escalation = 0;
+
+                let resTOU = window.inputApps.calculate(touInputs, true);
+                let energyPeakTotal = (1000 * 13) * 250; 
+                let energyOffPeakTotal = ((1000 * 11) * 250) + ((1000 * 24) * 115);
+                
+                let expectedCost = (energyPeakTotal * 5.0) + (energyOffPeakTotal * 2.0);
+                let expectedFt = (energyPeakTotal + energyOffPeakTotal) * 0.5;
+                let expectedBill = (expectedCost + expectedFt + (312 * 12)) * 1.07;
+                
+                assert(Math.abs(resTOU.details.annualRevenue[1] - expectedBill) < 1, "TOU Model splits Weekday/Holiday output accurately and applies VAT.");
+            });
+
+            runTC("TC7.4 (Advanced Tariff Models - DISCOUNT)", () => {
+                const baseInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                baseInputs.capacity = 1;
+                baseInputs.hoursPerDay = 10;
+                baseInputs.daysPerYear = 365;
+                baseInputs.powerFactor = 1.0;
+                baseInputs.opex = []; baseInputs.detailedOpex = []; baseInputs.personnel = []; baseInputs.adminItems = [];
+
+                const disInputs = JSON.parse(JSON.stringify(baseInputs));
+                disInputs.revenue.tariffType = 'DISCOUNT';
+                disInputs.revenue.peaMeaRate = 4.0;
+                disInputs.revenue.discountPercent = 10; 
+                disInputs.revenue.escalation = 0;
+
+                let resDIS = window.inputApps.calculate(disInputs, true);
+                let unitPrice1 = resDIS.details.annualRevenue[1] / resDIS.details.annualEnergy[1];
+                let expectedNet = 4.0 * (1 - 0.10); 
+                
+                assert(Math.abs(unitPrice1 - expectedNet) < 0.01, "DISCOUNT Model strictly calculates unit rate as base * (1 - discount).");
             });
 
             console.log("\\n=== Verification Finished with " + failCount + " Failures ===");
