@@ -1419,7 +1419,7 @@ class InputManager {
         const data = {
             inputs: this.getInputs(),
             timestamp: new Date().toISOString(),
-            version: '1.0'
+            version: '1.1'
         };
         const jsonStr = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -1445,6 +1445,8 @@ class InputManager {
                 if (data && data.inputs) {
                     const imported = { ...data.inputs };
 
+                    const version = data.version || (data.metadata ? data.metadata.version : '1.0');
+
                     // Legacy Support: Default to POWER if modelType is missing
                     if (!imported.modelType) {
                         imported.modelType = 'POWER';
@@ -1456,6 +1458,16 @@ class InputManager {
                     imported.adminItems = Array.isArray(imported.adminItems) ? imported.adminItems : [];
                     imported.otherRevenue = Array.isArray(imported.otherRevenue) ? imported.otherRevenue : [];
                     imported.personnel = Array.isArray(imported.personnel) ? imported.personnel : [];
+
+                    // --- MIGRATIONS ---
+                    // Version 1.0 -> 1.1: Detailed Opex Linked Multipliers changed from % (100) to raw (1x)
+                    if (version === '1.0' || !version) {
+                        imported.detailedOpex.forEach(item => {
+                            if (item.mode === 'linked' && item.multiplier !== undefined) {
+                                item.multiplier = parseFloat(item.multiplier) / 100;
+                            }
+                        });
+                    }
 
                     // 1. Update State
                     this.setState({ inputs: imported });
