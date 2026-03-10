@@ -241,27 +241,59 @@ class InputManager {
         let html = '<div class="divider"></div>';
 
         if (modelType === 'POWER') {
+            const tariffType = this.currentInputs.revenue.tariffType || 'TOU';
+
             html += `
                 <div class="row">
-                    <div class="form-group">
-                        <label>Peak Rate (THB)</label>
-                        <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                    <div class="form-group">
-                        <label>Peak Hrs/Day</label>
-                        <input type="text" id="hoursPeak" value="${fmt(this.currentInputs.revenue.peakHours)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Off-Peak Rate</label>
-                        <input type="text" id="priceOffPeak" value="${fmt(this.currentInputs.revenue.offPeakRate)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                    <div class="form-group">
-                        <label>Hrs/Day</label>
-                        <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Tariff Scheme</label>
+                        <select id="tariffType" onchange="inputApps.userTriggerCalculate()">
+                            <option value="TOU" ${tariffType === 'TOU' ? 'selected' : ''}>Time-of-Use (Peak/Off-Peak)</option>
+                            <option value="FIT" ${tariffType === 'FIT' ? 'selected' : ''}>Feed-in Tariff (Flat Rate)</option>
+                        </select>
                     </div>
                 </div>
+            `;
+
+            if (tariffType === 'FIT') {
+                html += `
+                    <div class="row">
+                        <div class="form-group">
+                            <label>FiT Rate (THB)</label>
+                            <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Total Hrs/Day</label>
+                            <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Peak Rate (THB)</label>
+                            <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Peak Hrs/Day</label>
+                            <input type="text" id="hoursPeak" value="${fmt(this.currentInputs.revenue.peakHours)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Off-Peak Rate</label>
+                            <input type="text" id="priceOffPeak" value="${fmt(this.currentInputs.revenue.offPeakRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Total Hrs/Day</label>
+                            <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
                  <div class="row">
                     <div class="form-group">
                         <label>Adder (THB)</label>
@@ -574,8 +606,9 @@ class InputManager {
                 degradation: getValue('degradation'),
 
                 revenue: {
+                    tariffType: document.getElementById('tariffType')?.value || 'TOU',
                     peakRate: getValue('pricePeak'),
-                    peakHours: getValue('hoursPeak'),
+                    peakHours: document.getElementById('tariffType')?.value === 'FIT' ? getValue('hoursPerDay') : getValue('hoursPeak'),
                     offPeakRate: getValue('priceOffPeak'),
                     escalation: getValue('revenueEscalation'),
                     adderPrice: getValue('adderPrice'),
@@ -1467,6 +1500,11 @@ class InputManager {
                                 item.multiplier = parseFloat(item.multiplier) / 100;
                             }
                         });
+
+                        // Default legacy Power models to TOU
+                        if (imported.modelType === 'POWER' && imported.revenue) {
+                            imported.revenue.tariffType = imported.revenue.tariffType || 'TOU';
+                        }
                     }
 
                     // 1. Update State

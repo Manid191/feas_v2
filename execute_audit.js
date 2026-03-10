@@ -176,6 +176,42 @@ try {
                 assert(calcResLoaded.details.annualVariableCost[1] > 0, "Opex preset successfully injected positive expense into main calculation");
             });
 
+            // TC6.1 (Feed-in Tariff (FiT) vs TOU Comparison)
+            runTC("TC6.1 (Feed-in Tariff vs TOU Evaluation)", () => {
+                const baseInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                baseInputs.capacity = 10;
+                baseInputs.hoursPerDay = 24;
+                baseInputs.opex = [];
+                baseInputs.detailedOpex = [];
+                baseInputs.personnel = [];
+                baseInputs.adminItems = [];
+                
+                // --- Configuration 1: TOU acting as Flat Rate (24 hrs Peak)
+                const touInputs = JSON.parse(JSON.stringify(baseInputs));
+                touInputs.revenue.tariffType = 'TOU';
+                touInputs.revenue.peakRate = 5.0; // 5 THB
+                touInputs.revenue.offPeakRate = 2.0;
+                touInputs.revenue.peakHours = 24;
+                
+                let resTOU = window.inputApps.calculate(touInputs, true);
+                
+                // --- Configuration 2: Native FiT Mode
+                const fitInputs = JSON.parse(JSON.stringify(baseInputs));
+                fitInputs.revenue.tariffType = 'FIT';
+                fitInputs.revenue.peakRate = 5.0; // 5 THB (Uses PeakRate as FiT Rate)
+                // In FIT, peakHours is ignored by logic, but simulate missing explicitly
+                fitInputs.revenue.peakHours = 0; 
+                fitInputs.revenue.offPeakRate = 0;
+                
+                let resFIT = window.inputApps.calculate(fitInputs, true);
+                
+                assert(resTOU.details.annualRevenue[1] > 0, "TOU calculated positive revenue");
+                assert(resFIT.details.annualRevenue[1] > 0, "FIT calculated positive revenue");
+                // Due to standard floating point math they should be identical
+                const diff = Math.abs(resTOU.details.annualRevenue[1] - resFIT.details.annualRevenue[1]);
+                assert(diff < 0.01, "FIT revenue perfectly matches 24-hr TOU revenue equivalent");
+            });
+
             console.log("\\n=== Verification Finished with " + failCount + " Failures ===");
             if (failCount > 0) throw new Error("Tests Failed");
         }
