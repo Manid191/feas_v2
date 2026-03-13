@@ -155,8 +155,11 @@ class DetailedOpexManager {
                            onchange="detailedOpexApp.renameCategory('${cat}', this.value)">
                     <div style="display:flex; align-items:center; gap: 10px;">
                         <span style="font-size:12px; font-weight:bold; color:#107c41;">${catMillion.toFixed(2)} M THB</span>
-                        <button class="btn btn-primary btn-sm" style="padding: 2px 8px; font-size:10px;" onclick="detailedOpexApp.add('${cat}')">
+                        <button class="btn btn-primary btn-sm" style="padding: 2px 8px; font-size:10px;" onclick="detailedOpexApp.add('${cat}')" title="Add Item">
                             <i class="fa-solid fa-plus"></i> Item
+                        </button>
+                        <button class="btn btn-danger btn-sm" style="padding: 2px 8px; font-size:10px;" onclick="detailedOpexApp.removeCategory('${cat}')" title="Delete Category">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
@@ -263,6 +266,17 @@ class DetailedOpexManager {
         });
         this.updateState();
         this.render();
+    }
+
+    removeCategory(categoryName) {
+        if (confirm(`Are you sure you want to delete the category "${categoryName}" and all its items?`)) {
+            this.state = this.state.filter(item => item.category !== categoryName);
+            this.updateState();
+            this.render();
+            if (window.inputApps && window.inputApps.userTriggerCalculate) {
+                window.inputApps.userTriggerCalculate();
+            }
+        }
     }
 
     remove(index) {

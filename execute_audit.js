@@ -21,7 +21,9 @@ const sandbox = {
         getItem: function (key) { return this._data[key] || null; },
         setItem: function (key, val) { this._data[key] = String(val); },
         removeItem: function (key) { delete this._data[key]; },
-        clear: function () { this._data = {}; }
+        clear: function () { this._data = {}; },
+        get length() { return Object.keys(this._data).length; },
+        key: function (i) { return Object.keys(this._data)[i]; }
     }
 };
 
@@ -82,9 +84,25 @@ try {
             });
 
             runTC("TC1.3 (Corrupted Storage Recovery)", () => {
-                localStorage.setItem('powerplant_projects', 'invalid json {[');
+                localStorage.setItem('feasibility_project_corrupted', 'invalid json {[');
                 const loaded = StorageManager.loadLatestProject();
                 assert(loaded === null, "Corrupted storage caught safely");
+            });
+
+            runTC("TC1.4 (Storage Migration v1.0 -> v1.1)", () => {
+                localStorage.clear();
+                const v1Data = {
+                    version: '1.0',
+                    data: {
+                        detailedOpex: [
+                            { id: '1', mode: 'linked', multiplier: '50' } // 50% in v1.0
+                        ]
+                    },
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem('feasibility_project_v1', JSON.stringify(v1Data));
+                const loaded = StorageManager.loadLatestProject();
+                assert(loaded.detailedOpex[0].multiplier === 0.5, "v1.0 linked multiplier migrated to v1.1 decimal format");
             });
             
             runTC("TC2.1 (Edge Case - Negative Inputs)", () => {
@@ -97,7 +115,30 @@ try {
                 } catch(e) {}
                 assert(typeof calcRes.irr === 'number' || isNaN(calcRes.irr) || calcRes.irr === undefined, "Calculator handles negative capacity gracefully");
             });
-            
+
+            runTC("TC2.2 (Edge Case - Divide by Zero / Empty Yield)", () => {
+                const testInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                testInputs.capacity = 0;
+                testInputs.hoursPerDay = 0;
+                testInputs.opex = [];
+                testInputs.detailedOpex = [];
+                testInputs.personnel = [];
+                let calcRes = window.inputApps.calculate(testInputs, true);
+                assert(calcRes.lcoe === 0 || isNaN(calcRes.lcoe), "LCOE DivideByZero prevented (returns 0 or NaN instead of Infinity)");
+                assert(isFinite(calcRes.details.annualDSCR[1]), "DSCR DivideByZero prevented");
+            });
+
+            runTC("TC2.3 (Extreme Math Bounds - NaN coercion)", () => {
+                const testInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                testInputs.revenueEscalation = "invalid_string"; // Should coerce to 0
+                testInputs.simOpexInflation = 100; // 100% inflation!
+                testInputs.opex = [];
+                testInputs.detailedOpex = [];
+                testInputs.personnel = [];
+                let calcRes = window.inputApps.calculate(testInputs, true);
+                assert(!isNaN(calcRes.npv), "NPV computes normally despite text coercion or extreme inflation");
+            });
+
             runTC("TC3.3 (Negative - Blank/Invalid Admin Costs)", () => {
                 const acm = new AdminCostManager('dummy');
                 window.inputApps.currentInputs.adminItems = [];
@@ -237,6 +278,55 @@ try {
 
                 const touInputs = JSON.parse(JSON.stringify(baseInputs));
                 touInputs.revenue.tariffType = 'TOU';
+
+            runTC("TC8.1 (Tariff Bounds - TOU 365 Holidays)", () => {
+                const bInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                bInputs.capacity = 1; bInputs.hoursPerDay = 24; bInputs.daysPerYear = 365;
+                bInputs.opex = []; bInputs.detailedOpex = []; bInputs.personnel = [];
+                bInputs.revenue.tariffType = 'TOU';
+                bInputs.revenue.holidays = 365;
+                bInputs.revenue.peakRate = 5.0;
+                bInputs.revenue.offPeakRate = 2.0;
+                bInputs.revenue.ftRate = 0;
+                bInputs.revenue.serviceFee = 0;
+
+                let resBounds = window.inputApps.calculate(bInputs, true);
+                let unitPrice1 = resBounds.details.annualRevenue[1] / resBounds.details.annualEnergy[1];
+                let expectedPrice = 2.0 * 1.07; // Off-Peak with 7% VAT
+                
+                assert(Math.abs(unitPrice1 - expectedPrice) < 0.01, "365 Holidays pushes 100% of generation into the OffPeak 2.0 bucket");
+            });
+
+            runTC("TC8.2 (Tariff Bounds - Fractional Adder Years)", () => {
+                const bInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                bInputs.capacity = 1; bInputs.hoursPerDay = 10; bInputs.daysPerYear = 365;
+                bInputs.opex = []; bInputs.detailedOpex = []; bInputs.personnel = [];
+                bInputs.revenue.tariffType = 'ADDER';
+                bInputs.revenue.baseRate = 2.0; bInputs.revenue.ftRate = 0; bInputs.revenue.adderPrice = 1.0;
+                bInputs.revenue.adderYears = 1.5; // Decimals
+                bInputs.revenue.escalation = 0;
+
+                let resBounds = window.inputApps.calculate(bInputs, true);
+                let priceY1 = resBounds.details.annualRevenue[1] / resBounds.details.annualEnergy[1];
+                let priceY2 = resBounds.details.annualRevenue[2] / resBounds.details.annualEnergy[2];
+                
+                assert(Math.abs(priceY1 - 3.0) < 0.01, "Year 1 retains full Adder");
+                assert(Math.abs(priceY2 - 2.0) < 0.01, "Fractional Adder drops completely in Year 2 (floored logically by ModelStrategy loop check)");
+            });
+
+            runTC("TC8.3 (Tariff Bounds - Discount > 100%)", () => {
+                const bInputs = JSON.parse(JSON.stringify(window.AppConfig.defaults));
+                bInputs.capacity = 1; bInputs.hoursPerDay = 10; bInputs.daysPerYear = 365;
+                bInputs.opex = []; bInputs.detailedOpex = []; bInputs.personnel = [];
+                bInputs.revenue.tariffType = 'DISCOUNT';
+                bInputs.revenue.peaMeaRate = 4.0;
+                bInputs.revenue.discountPercent = 120; // 120% discount
+
+                let resBounds = window.inputApps.calculate(bInputs, true);
+                let priceY1 = resBounds.details.annualRevenue[1] / resBounds.details.annualEnergy[1];
+                
+                assert(priceY1 < 0, "120% Discount safely computes as functional loss/penalty rather than crashing or coercing implicitly");
+            });
                 touInputs.revenue.peakRate = 5.0;
                 touInputs.revenue.offPeakRate = 2.0;
                 touInputs.revenue.ftRate = 0.5;
