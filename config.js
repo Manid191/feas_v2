@@ -4,7 +4,7 @@
  */
 window.AppConfig = {
     // Increment this to force a hard reset on client browsers
-    appVersion: '5.2',
+    appVersion: '5.3',
 
     // Business Models & Configurations
     models: {
@@ -23,10 +23,10 @@ window.AppConfig = {
             id: 'SOLAR',
             name: 'Solar Power',
             icon: 'fa-sun',
-            units: { capacity: 'MWp', product: 'Electricity' },
-            labels: { capacity: 'Installed Capacity (MWp)', price: 'Feed-in Tariff' },
+            units: { capacity: 'kWp', product: 'Electricity' },
+            labels: { capacity: 'กำลังการผลิตติดตั้ง (kWp)', price: 'ค่าไฟรับซื้อ (Feed-in Tariff)' },
             defaults: {
-                capacity: 5,
+                capacity: 5000,
                 hoursPerDay: 4.5, // Sun hours
                 degradation: 0.7, // Higher degradation
                 revenue: { peakRate: 2.2, offPeakRate: 2.2, adderPrice: 0 } // Often flat rate or specific FiT
@@ -112,6 +112,10 @@ window.AppConfig = {
             loanTerm: 10,
             taxRate: 20,
             opexInflation: 1.5,
+            ke: 12,
+            kd: 6,
+            discountRate: 7,
+            discountMode: 'ke_kd',
             taxHoliday: 0
         },
         personnel: [

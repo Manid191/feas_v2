@@ -63,15 +63,6 @@ class SimulationManager {
         // Clone existing events
         const activeEvents = JSON.parse(JSON.stringify(this.events));
 
-        // Add Global Overrides from UI
-        const simInt = document.getElementById('sim-interest')?.value;
-        const simInf = document.getElementById('sim-inflation')?.value;
-        const simTax = document.getElementById('sim-tax')?.value;
-
-        if (simInt && !isNaN(parseFloat(simInt))) activeEvents.push({ type: 'global_interest', value: parseFloat(simInt) });
-        if (simInf && !isNaN(parseFloat(simInf))) activeEvents.push({ type: 'global_inflation', value: parseFloat(simInf) });
-        if (simTax && !isNaN(parseFloat(simTax))) activeEvents.push({ type: 'global_tax', value: parseFloat(simTax) });
-
         // 3. Run Simulation
         const simInputs = JSON.parse(JSON.stringify(baseInputs));
         const simResult = window.inputApps.calculate(simInputs, true, activeEvents);
@@ -82,51 +73,26 @@ class SimulationManager {
     render() {
         if (!this.container) return;
 
-        // Ensure we have last inputs to show current values
-        const current = window.inputApps?.lastResults?.inputs?.finance || {};
-        const curInt = current.interestRate || 7;
-        const curInf = current.opexInflation || 3;
-        const curTax = current.taxRate || 20;
-
         let html = `
-        <!-- Global Controls -->
-        <div class="card glass-panel full-width" style="margin-bottom: 20px;">
-            <h3><i class="fa-solid fa-sliders"></i> Global Simulation Parameters</h3>
-            <div class="row">
-                <div class="col-md-4">
-                    <label>New Interest Rate (%) <span class="text-muted">(Current: ${curInt}%)</span></label>
-                    <input type="number" id="sim-interest" class="form-control" placeholder="Leave empty to keep current">
-                </div>
-                <div class="col-md-4">
-                    <label>New OpEx Inflation (%) <span class="text-muted">(Current: ${curInf}%)</span></label>
-                    <input type="number" id="sim-inflation" class="form-control" placeholder="Leave empty to keep current">
-                </div>
-                <div class="col-md-4">
-                    <label>New Tax Rate (%) <span class="text-muted">(Current: ${curTax}%)</span></label>
-                    <input type="number" id="sim-tax" class="form-control" placeholder="Leave empty to keep current">
-                </div>
-            </div>
-        </div>
-
         <div class="card glass-panel full-width">
             <div class="card-header">
-                <h3><i class="fa-solid fa-flask"></i> Simulation Scenarios</h3>
+                <h3><i class="fa-solid fa-flask"></i> สถานการณ์จำลอง</h3>
                 <button class="btn btn-primary btn-sm" onclick="simulationApp.addEvent()">
-                    <i class="fa-solid fa-plus"></i> Add Event
+                    <i class="fa-solid fa-plus"></i> เพิ่มเหตุการณ์
                 </button>
             </div>
             
-            <p class="hint-text">Add events to simulate changes (e.g., "Capacity drops 20% in Year 10").</p>
+            <p class="hint-text">เพิ่มเหตุการณ์เพื่อจำลองการเปลี่ยนแปลง (เช่น กำลังผลิตลดลง 20% ในปีที่ 10)</p>
 
             <table class="data-table" style="width: 100%; margin-top: 10px;">
                 <thead>
                     <tr>
-                        <th style="width: 20%;">Parameter</th>
-                        <th style="width: 10%;">Start Year</th>
-                        <th style="width: 10%;">End / Term</th>
-                        <th style="width: 15%;">Mode / Rate</th>
-                        <th style="width: 15%;">Value / Amount</th>
-                        <th>Description</th>
+                        <th style="width: 20%;">พารามิเตอร์</th>
+                        <th style="width: 10%;">ปีเริ่มต้น</th>
+                        <th style="width: 10%;">ปีสิ้นสุด / ระยะเวลา</th>
+                        <th style="width: 15%;">โหมด / อัตรา</th>
+                        <th style="width: 15%;">ค่า / จำนวนเงิน</th>
+                        <th>คำอธิบาย</th>
                         <th style="width: 40px;"></th>
                     </tr>
                 </thead>
@@ -134,7 +100,7 @@ class SimulationManager {
         `;
 
         if (this.events.length === 0) {
-            html += `<tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No events added. Click "Add Event" to start.</td></tr>`;
+            html += `<tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">ยังไม่มีเหตุการณ์จำลอง กด "เพิ่มเหตุการณ์" เพื่อเริ่มต้น</td></tr>`;
         } else {
             this.events.forEach(event => {
                 const isLoan = event.type === 'new_loan';
@@ -202,7 +168,7 @@ class SimulationManager {
 
             <div style="margin-top: 20px; text-align: right;">
                 <button class="btn btn-success" onclick="simulationApp.runSimulation()">
-                    <i class="fa-solid fa-play"></i> Run Scale Simulation
+                    <i class="fa-solid fa-play"></i> รันการจำลอง
                 </button>
             </div>
         </div>
@@ -252,7 +218,7 @@ class SimulationManager {
         let html = `
         <div class="card full-width">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h3><i class="fa-solid fa-chart-line"></i> Simulation Results Comparison</h3>
+                <h3><i class="fa-solid fa-chart-line"></i> เปรียบเทียบผลลัพธ์การจำลอง</h3>
                 
                 <!-- View Toggle -->
                 <div class="view-toggle">
