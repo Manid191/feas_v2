@@ -17,6 +17,7 @@ const StorageManager = {
             const packet = {
                 id: key,
                 timestamp: new Date().toISOString(),
+                version: '1.1',
                 data: data
             };
 
@@ -79,7 +80,22 @@ const StorageManager = {
 
         // Sort descending
         saves.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        return saves[0].data;
+
+        const latestInfo = saves[0];
+        const loadedData = latestInfo.data;
+        const version = latestInfo.version || '1.0';
+
+        // --- MIGRATIONS ---
+        // Version 1.0 -> 1.1: Detailed Opex Linked Multipliers changed from % (100) to raw (1x)
+        if (version === '1.0' && loadedData && loadedData.detailedOpex) {
+            loadedData.detailedOpex.forEach(item => {
+                if (item.mode === 'linked' && item.multiplier !== undefined) {
+                    item.multiplier = parseFloat(item.multiplier) / 100;
+                }
+            });
+        }
+
+        return loadedData;
     },
 
     /**

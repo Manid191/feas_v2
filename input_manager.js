@@ -243,33 +243,58 @@ class InputManager {
         if (modelType === 'POWER') {
             html += `
                 <div class="row">
-                    <div class="form-group">
-                        <label>Peak Rate (THB)</label>
-                        <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                    <div class="form-group">
-                        <label>Peak Hrs/Day</label>
-                        <input type="text" id="hoursPeak" value="${fmt(this.currentInputs.revenue.peakHours)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>Off-Peak Rate</label>
-                        <input type="text" id="priceOffPeak" value="${fmt(this.currentInputs.revenue.offPeakRate)}" onchange="inputApps.evaluateMathInput(this)">
-                    </div>
-                    <div class="form-group">
-                        <label>Hrs/Day</label>
-                        <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Tariff Scheme</label>
+                        <select id="tariffType" onchange="inputApps.onTariffChange()">
+                            <option value="FIT" ${tariffType === 'FIT' ? 'selected' : ''}>Feed-in Tariff (FiT)</option>
+                            <option value="ADDER" ${tariffType === 'ADDER' ? 'selected' : ''}>Adder (VSPP/SPP)</option>
+                            <option value="TOU" ${tariffType === 'TOU' ? 'selected' : ''}>Time-of-Use (Peak/Off-Peak)</option>
+                            <option value="DISCOUNT" ${tariffType === 'DISCOUNT' ? 'selected' : ''}>Private PPA (Discount %)</option>
+                        </select>
                     </div>
                 </div>
-                 <div class="row">
-                    <div class="form-group">
-                        <label>Adder (THB)</label>
-                        <input type="text" id="adderPrice" value="${fmt(this.currentInputs.revenue.adderPrice || 0)}" onchange="inputApps.evaluateMathInput(this)">
+            `;
+
+            if (tariffType === 'FIT') {
+                html += `
+                    <div class="row">
+                        <div class="form-group">
+                            <label>FiT F (THB)</label>
+                            <input type="text" id="fitF" value="${fmt(this.currentInputs.revenue.fitF || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>FiT V (THB)</label>
+                            <input type="text" id="fitV" value="${fmt(this.currentInputs.revenue.fitV || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Adder Yrs</label>
-                        <input type="text" id="adderYears" value="${fmt(this.currentInputs.revenue.adderYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                    <div class="row">
+                        <div class="form-group">
+                            <label>FiT Premium (THB)</label>
+                            <input type="text" id="fitPremium" value="${fmt(this.currentInputs.revenue.fitPremium || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Premium Yrs</label>
+                            <input type="text" id="fitPremiumYears" value="${fmt(this.currentInputs.revenue.fitPremiumYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group" style="flex: 0.5;">
+                            <label>${modelType === 'SOLAR' ? 'Sun Hrs/Day' : 'Total Hrs/Day'}</label>
+                            <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                    </div>
+                `;
+            } else if (tariffType === 'ADDER') {
+                html += `
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Base Rate (THB)</label>
+                            <input type="text" id="baseRate" value="${fmt(this.currentInputs.revenue.baseRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Ft Rate (THB)</label>
+                            <input type="text" id="ftRate" value="${fmt(this.currentInputs.revenue.ftRate)}" onchange="inputApps.evaluateMathInput(this)">
+                        </div>
                     </div>
                 </div>
             `;
@@ -574,12 +599,31 @@ class InputManager {
                 degradation: getValue('degradation'),
 
                 revenue: {
+                    tariffType: document.getElementById('tariffType')?.value || 'TOU',
                     peakRate: getValue('pricePeak'),
-                    peakHours: getValue('hoursPeak'),
+                    peakHours: document.getElementById('tariffType')?.value === 'FIT' ? getValue('hoursPerDay') : getValue('hoursPeak'),
                     offPeakRate: getValue('priceOffPeak'),
                     escalation: getValue('revenueEscalation'),
                     adderPrice: getValue('adderPrice'),
                     adderYears: getValue('adderYears'),
+
+                    // Adder specific
+                    baseRate: getValue('baseRate'),
+                    ftRate: getValue('ftRate'),
+
+                    // FIT specific
+                    fitF: getValue('fitF'),
+                    fitV: getValue('fitV'),
+                    fitPremium: getValue('fitPremium'),
+                    fitPremiumYears: getValue('fitPremiumYears'),
+
+                    // TOU specific
+                    serviceFee: getValue('serviceFee'),
+                    holidays: getValue('holidays') || 115,
+
+                    // Discount specific
+                    peaMeaRate: getValue('peaMeaRate'),
+                    discountPercent: getValue('discountPercent'),
 
                     // Generic
                     unitPrice: getValue('unitPrice'),
@@ -1089,7 +1133,7 @@ class InputManager {
                     if (depth > 5) return 0;
                     if (item.mode === 'linked' && item.linkedSourceId) {
                         const source = inputs.detailedOpex.find(i => i.id === item.linkedSourceId);
-                        if (source) return getDetQty(source, depth + 1) * (parseFloat(item.multiplier) || 0) / 100;
+                        if (source) return getDetQty(source, depth + 1) * (parseFloat(item.multiplier) || 0);
                     }
                     return parseFloat(item.quantity) || 0;
                 };
@@ -1280,9 +1324,11 @@ class InputManager {
                 annualEbitda, annualDepreciation: annualDepreciationArr,
                 annualEbit, annualInterest, annualPrincipal, annualTax, annualNetIncome,
                 annualLoanBalance, annualDSCR,
-                annualFixedCost, annualVariableCost, annualFinanceCost
+                annualFixedCost, annualVariableCost, annualFinanceCost,
+                annualEnergy: energyArray
             }
         };
+
 
         if (!isSimulation) {
             this.lastResults = results; // Cache for simulation comparison
@@ -1296,9 +1342,90 @@ class InputManager {
         return results;
     }
 
+    onTariffChange() {
+        // Save current user input state from the DOM deeply
+        this.getInputs();
+
+        // Re-render the form HTML so the correct fields appear
+        this.renderInputs();
+
+        // Force calculation & downstream dashboard updates
+        this.userTriggerCalculate();
+    }
+
+    validateInputs(inputs) {
+        const warnings = [];
+        const errors = [];
+
+        if (!inputs.capacity || inputs.capacity <= 0) {
+            errors.push('Capacity must be greater than 0.');
+        }
+
+        if (inputs.hoursPerDay > 24) {
+            errors.push(`Hours per day cannot exceed 24. (Current: ${inputs.hoursPerDay})`);
+        }
+
+        if (inputs.modelType === 'POWER' || inputs.modelType === 'SOLAR') {
+            if (inputs.revenue && inputs.revenue.peakHours > inputs.hoursPerDay) {
+                errors.push(`Peak Hours (${inputs.revenue.peakHours}) cannot exceed total Hours per Day (${inputs.hoursPerDay}).`);
+            }
+        }
+
+        // Pre-calculation check for anomalies (dry run)
+        try {
+            const tempResult = this.calculate(inputs, true);
+            if (tempResult.irr < -50) {
+                warnings.push('IRR is extremely negative. Please check your CAPEX and Revenue inputs.');
+            }
+            if (tempResult.payback < 0 || tempResult.payback > 50) {
+                warnings.push('Payback period is very high or never pays back.');
+            }
+            if (tempResult.lcoe > 100) {
+                warnings.push(`Levelized Cost (LCOE) is very high: ${tempResult.lcoe.toFixed(2)} THB. General power rates are under 10 THB.`);
+            }
+        } catch (e) {
+            errors.push('Calculation test failed: ' + e.message);
+        }
+
+        return { errors, warnings, valid: errors.length === 0 };
+    }
+
     userTriggerCalculate() {
-        // Mark that a calculation has been done
+        const inputs = this.getInputs();
+        const validation = this.validateInputs(inputs);
+
+        if (validation.errors.length > 0 || validation.warnings.length > 0) {
+            this.showValidationModal(validation);
+            // Don't auto-calculate if there are errors. Treat warnings as stoppers too, unless user forces.
+            return;
+        }
+
+        this.forceCalculate();
+    }
+
+    showValidationModal(validation) {
+        const modal = document.getElementById('modal-validation');
+        const list = document.getElementById('validation-messages');
+        if (modal && list) {
+            let html = '<ul style="text-align: left; padding-left: 20px;">';
+            validation.errors.forEach(e => html += `<li style="color: #c0392b; margin-bottom: 8px;"><b>Error:</b> ${e}</li>`);
+            validation.warnings.forEach(w => html += `<li style="color: #f39c12; margin-bottom: 8px;"><b>Warning:</b> ${w}</li>`);
+            html += '</ul>';
+            list.innerHTML = html;
+            modal.style.display = 'flex';
+        } else {
+            // Fallback
+            alert("Validation Alerts:\n" + validation.errors.concat(validation.warnings).join('\n'));
+        }
+    }
+
+    forceCalculate() {
+        const modal = document.getElementById('modal-validation');
+        if (modal) modal.style.display = 'none';
+
+        // Mark that a calculation has been done and clear dirty flag
         window.hasCalculated = true;
+        window.isDirty = false;
 
         // Force save state
         const state = {
@@ -1349,7 +1476,7 @@ class InputManager {
         const data = {
             inputs: this.getInputs(),
             timestamp: new Date().toISOString(),
-            version: '1.0'
+            version: '1.1'
         };
         const jsonStr = JSON.stringify(data, null, 2);
         const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -1396,7 +1523,7 @@ class InputManager {
                     // 3. Populate values into the new DOM
                     this.setState({ inputs: imported });
 
-                    alert('Scenario imported successfully!');
+                    // Removed alert to allow userTriggerCalculate to seamlessly take over
 
                     // 4. Calculate
                     this.userTriggerCalculate();
