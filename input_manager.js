@@ -240,10 +240,7 @@ class InputManager {
     renderRevenueInputs(modelType, fmt) {
         let html = '<div class="divider"></div>';
 
-        // Both Power and Solar share the exact same Electricity Pricing Models now
-        if (modelType === 'POWER' || modelType === 'SOLAR') {
-            const tariffType = this.currentInputs.revenue.tariffType || 'TOU';
-
+        if (modelType === 'POWER') {
             html += `
                 <div class="row">
                     <div class="form-group" style="flex: 1;">
@@ -299,82 +296,31 @@ class InputManager {
                             <input type="text" id="ftRate" value="${fmt(this.currentInputs.revenue.ftRate)}" onchange="inputApps.evaluateMathInput(this)">
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="form-group">
-                            <label>Adder (THB)</label>
-                            <input type="text" id="adderPrice" value="${fmt(this.currentInputs.revenue.adderPrice || 0)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                        <div class="form-group">
-                            <label>Adder Yrs</label>
-                            <input type="text" id="adderYears" value="${fmt(this.currentInputs.revenue.adderYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
+                </div>
+            `;
+        } else if (modelType === 'SOLAR') {
+            html += `
+                <div class="row">
+                    <div class="form-group">
+                        <label>Feed-in Tariff (THB)</label>
+                        <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
                     </div>
-                    <div class="row">
-                        <div class="form-group" style="flex: 0.5;">
-                            <label>${modelType === 'SOLAR' ? 'Sun Hrs/Day' : 'Total Hrs/Day'}</label>
-                            <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
+                    <div class="form-group">
+                        <label>Sun Hrs/Day</label>
+                        <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
                     </div>
-                `;
-            } else if (tariffType === 'TOU') {
-                html += `
-                    <div class="row">
-                        <div class="form-group">
-                            <label>Peak Rate (THB)</label>
-                            <input type="text" id="pricePeak" value="${fmt(this.currentInputs.revenue.peakRate)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                        <div class="form-group">
-                            <label>Off-Peak Rate (THB)</label>
-                            <input type="text" id="priceOffPeak" value="${fmt(this.currentInputs.revenue.offPeakRate)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
+                </div>
+                 <div class="row">
+                    <div class="form-group">
+                        <label>Adder (THB)</label>
+                        <input type="text" id="adderPrice" value="${fmt(this.currentInputs.revenue.adderPrice || 0)}" onchange="inputApps.evaluateMathInput(this)">
                     </div>
-                    <div class="row">
-                        <div class="form-group">
-                            <label>Ft Rate (THB)</label>
-                            <input type="text" id="ftRate" value="${fmt(this.currentInputs.revenue.ftRate)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                        <div class="form-group">
-                            <label>Service Fee (THB/Mo)</label>
-                            <input type="text" id="serviceFee" value="${fmt(this.currentInputs.revenue.serviceFee)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
+                    <div class="form-group">
+                        <label>Adder Yrs</label>
+                        <input type="text" id="adderYears" value="${fmt(this.currentInputs.revenue.adderYears || 0)}" onchange="inputApps.evaluateMathInput(this)">
                     </div>
-                    <div class="row">
-                        <div class="form-group">
-                            <label>Holidays/Yr (Days)</label>
-                            <input type="text" id="holidays" value="${fmt(this.currentInputs.revenue.holidays || 115)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                        <div class="form-group">
-                            <label>Peak Hrs/Day</label>
-                            <input type="text" id="hoursPeak" value="${fmt(this.currentInputs.revenue.peakHours)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group" style="flex: 0.5;">
-                            <label>${modelType === 'SOLAR' ? 'Sun Hrs/Day' : 'Total Hrs/Day'}</label>
-                            <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                    </div>
-                `;
-            } else if (tariffType === 'DISCOUNT') {
-                html += `
-                    <div class="row">
-                        <div class="form-group">
-                            <label>PEA/MEA Rate (THB)</label>
-                            <input type="text" id="peaMeaRate" value="${fmt(this.currentInputs.revenue.peaMeaRate)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                        <div class="form-group">
-                            <label>Discount (%)</label>
-                            <input type="text" id="discountPercent" value="${fmt(this.currentInputs.revenue.discountPercent)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="form-group" style="flex: 0.5;">
-                            <label>${modelType === 'SOLAR' ? 'Sun Hrs/Day' : 'Total Hrs/Day'}</label>
-                            <input type="text" id="hoursPerDay" value="${fmt(this.currentInputs.hoursPerDay)}" onchange="inputApps.evaluateMathInput(this)">
-                        </div>
-                    </div>
-                `;
-            }
+                </div>
+            `;
         } else if (modelType === 'WATER') {
             html += `
                  <div class="form-group">
@@ -1556,8 +1502,6 @@ class InputManager {
                 if (data && data.inputs) {
                     const imported = { ...data.inputs };
 
-                    const version = data.version || (data.metadata ? data.metadata.version : '1.0');
-
                     // Legacy Support: Default to POWER if modelType is missing
                     if (!imported.modelType) {
                         imported.modelType = 'POWER';
@@ -1569,21 +1513,6 @@ class InputManager {
                     imported.adminItems = Array.isArray(imported.adminItems) ? imported.adminItems : [];
                     imported.otherRevenue = Array.isArray(imported.otherRevenue) ? imported.otherRevenue : [];
                     imported.personnel = Array.isArray(imported.personnel) ? imported.personnel : [];
-
-                    // --- MIGRATIONS ---
-                    // Version 1.0 -> 1.1: Detailed Opex Linked Multipliers changed from % (100) to raw (1x)
-                    if (version === '1.0' || !version) {
-                        imported.detailedOpex.forEach(item => {
-                            if (item.mode === 'linked' && item.multiplier !== undefined) {
-                                item.multiplier = parseFloat(item.multiplier) / 100;
-                            }
-                        });
-
-                        // Default legacy Power models to TOU
-                        if (imported.modelType === 'POWER' && imported.revenue) {
-                            imported.revenue.tariffType = imported.revenue.tariffType || 'TOU';
-                        }
-                    }
 
                     // 1. Update State
                     this.setState({ inputs: imported });

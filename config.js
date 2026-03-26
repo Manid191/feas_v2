@@ -23,10 +23,10 @@ window.AppConfig = {
             id: 'SOLAR',
             name: 'Solar Power',
             icon: 'fa-sun',
-            units: { capacity: 'MWp', product: 'Electricity' },
-            labels: { capacity: 'Installed Capacity (MWp)', price: 'Feed-in Tariff' },
+            units: { capacity: 'kWp', product: 'Electricity' },
+            labels: { capacity: 'กำลังการผลิตติดตั้ง (kWp)', price: 'ค่าไฟรับซื้อ (Feed-in Tariff)' },
             defaults: {
-                capacity: 5,
+                capacity: 5000,
                 hoursPerDay: 4.5, // Sun hours
                 degradation: 0.7, // Higher degradation
                 revenue: { peakRate: 2.2, offPeakRate: 2.2, adderPrice: 0 } // Often flat rate or specific FiT

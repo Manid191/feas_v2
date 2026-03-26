@@ -145,8 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!window.hasCalculated) {
                     document.getElementById('content-area').innerHTML = `<div class="placeholder-state">
                         <i class="fa-solid fa-calculator"></i>
-                        <h2>No Calculation Yet</h2>
-                        <p>Please go to <strong>Parameters</strong> and click the <strong>Calculate</strong> button first.</p>
+                        <h2>ยังไม่ได้คำนวณ</h2>
+                        <p>กรุณาไปที่ <strong>พารามิเตอร์</strong> และกดปุ่ม <strong>คำนวณ</strong> ก่อน</p>
                     </div>`;
                 } else {
                     window.inputApps.calculate();
@@ -155,8 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!window.hasCalculated) {
                     document.getElementById('content-area').innerHTML = `<div class="placeholder-state">
                         <i class="fa-solid fa-chart-line"></i>
-                        <h2>No Calculation Yet</h2>
-                        <p>Please calculate your parameters first.</p>
+                        <h2>ยังไม่ได้คำนวณ</h2>
+                        <p>กรุณาคำนวณพารามิเตอร์ก่อน</p>
                     </div>`;
                 } else {
                     // Calculate silently (isSimulation=true) to get results without auto-rendering dashboard
@@ -169,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!window.hasCalculated) {
                     document.getElementById('content-area').innerHTML = `<div class="placeholder-state">
                         <i class="fa-solid fa-file-contract"></i>
-                        <h2>No Report Data</h2>
-                        <p>Please calculate your parameters first to generate a report.</p>
+                        <h2>ยังไม่มีข้อมูลรายงาน</h2>
+                        <p>กรุณาคำนวณพารามิเตอร์ก่อนจึงจะสร้างรายงานได้</p>
                     </div>`;
                 } else {
                     const inputs = window.inputApps.getInputs();
@@ -186,8 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!window.hasCalculated) {
                     document.getElementById('content-area').innerHTML = `<div class="placeholder-state">
                         <i class="fa-solid fa-flask"></i>
-                        <h2>No Base Case Calculated</h2>
-                        <p>Please go to <strong>Parameters</strong> and click the <strong>Calculate</strong> button first to establish a Base Case.</p>
+                        <h2>ยังไม่ได้คำนวณ Base Case</h2>
+                        <p>กรุณาไปที่ <strong>พารามิเตอร์</strong> และกด <strong>คำนวณ</strong> ก่อน เพื่อสร้างค่า Base Case</p>
                     </div>`;
                 } else if (window.simulationApp) {
                     window.simulationApp.init();
@@ -200,14 +200,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function updateHeader(viewName) {
     const titleMap = {
-        'dashboard': { title: 'Dashboard', sub: 'Overview of your power plant feasibility study' },
-        'inputs': { title: 'Parameters', sub: 'Configure technical and financial assumptions' },
-        'personnel': { title: 'Personnel Plan', sub: 'Manage headcount and salary costs' },
-        'detailed-opex': { title: 'Variable Costs', sub: 'Manage Detailed OPEX (Chemicals, Maintenance, etc.)' },
-        'admin-cost': { title: 'Admin Costs', sub: 'Manage Fixed Administrative Expenses (CSR, Insurance, Rent, etc.)' },
-        'financials': { title: 'Financial Models', sub: 'Detailed cash flow and ratios' },
-        'simulation': { title: 'Simulation Scenarios', sub: 'Model impacts of future changes (Price, Capacity, Costs)' },
-        'report': { title: 'Report', sub: 'Generate and export PDF reports' }
+        'dashboard': { title: 'แดชบอร์ด', sub: 'ภาพรวมผลการศึกษาความเป็นไปได้ของโครงการ' },
+        'inputs': { title: 'พารามิเตอร์', sub: 'กำหนดสมมติฐานทางเทคนิคและการเงิน' },
+        'personnel': { title: 'แผนบุคลากร', sub: 'จัดการจำนวนพนักงานและต้นทุนเงินเดือน' },
+        'detailed-opex': { title: 'ต้นทุนผันแปร', sub: 'จัดการรายการ OPEX รายละเอียด (สารเคมี, บำรุงรักษา ฯลฯ)' },
+        'admin-cost': { title: 'ต้นทุนบริหาร', sub: 'จัดการค่าใช้จ่ายบริหารคงที่ (CSR, ประกันภัย, ค่าเช่า ฯลฯ)' },
+        'financials': { title: 'แบบจำลองการเงิน', sub: 'รายละเอียดกระแสเงินสดและอัตราส่วนทางการเงิน' },
+        'simulation': { title: 'สถานการณ์จำลอง', sub: 'จำลองผลกระทบจากการเปลี่ยนแปลงในอนาคต (ราคา, กำลังผลิต, ต้นทุน)' },
+        'report': { title: 'รายงาน', sub: 'สร้างและส่งออกรายงาน PDF' }
     };
 
     const header = document.getElementById('page-header');

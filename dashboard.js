@@ -77,7 +77,7 @@ class DashboardManager {
 
                 <!-- Chart Section -->
                 <div class="card glass-panel chart-panel">
-                    <h3><i class="fa-solid fa-chart-bar"></i> Cash Flow Analysis</h3>
+                    <h3><i class="fa-solid fa-chart-bar"></i> วิเคราะห์กระแสเงินสด</h3>
                     <div class="chart-container">
                         <canvas id="cashFlowChart"></canvas>
                     </div>
@@ -87,7 +87,7 @@ class DashboardManager {
                 <div class="row" style="margin-top: 20px;">
                     <div class="card glass-panel full-width">
                         <div class="card-header" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                            <h3 style="margin:0;"><i class="fa-solid fa-chart-pie"></i> Detailed Expense Breakdown</h3>
+                            <h3 style="margin:0;"><i class="fa-solid fa-chart-pie"></i> แยกรายละเอียดค่าใช้จ่าย</h3>
                             
                             <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
                                 <label style="font-size: 0.85em;">From:</label>
@@ -114,7 +114,7 @@ class DashboardManager {
                 <!-- Detailed Table Section -->
                 <div class="card glass-panel full-width" style="margin-top: 20px;">
                     <div class="card-header">
-                         <h3><i class="fa-solid fa-table"></i> Detailed Cash Flow</h3>
+                         <h3><i class="fa-solid fa-table"></i> ตารางกระแสเงินสดแบบละเอียด</h3>
                     </div>
                     <div id="detail-table-wrapper" style="overflow-x: auto; margin-top: 10px;">
                         <div id="detail-table-container"></div>

@@ -76,23 +76,23 @@ class SimulationManager {
         let html = `
         <div class="card glass-panel full-width">
             <div class="card-header">
-                <h3><i class="fa-solid fa-flask"></i> Simulation Scenarios</h3>
+                <h3><i class="fa-solid fa-flask"></i> สถานการณ์จำลอง</h3>
                 <button class="btn btn-primary btn-sm" onclick="simulationApp.addEvent()">
-                    <i class="fa-solid fa-plus"></i> Add Event
+                    <i class="fa-solid fa-plus"></i> เพิ่มเหตุการณ์
                 </button>
             </div>
             
-            <p class="hint-text">Add events to simulate changes (e.g., "Capacity drops 20% in Year 10").</p>
+            <p class="hint-text">เพิ่มเหตุการณ์เพื่อจำลองการเปลี่ยนแปลง (เช่น กำลังผลิตลดลง 20% ในปีที่ 10)</p>
 
             <table class="data-table" style="width: 100%; margin-top: 10px;">
                 <thead>
                     <tr>
-                        <th style="width: 20%;">Parameter</th>
-                        <th style="width: 10%;">Start Year</th>
-                        <th style="width: 10%;">End / Term</th>
-                        <th style="width: 15%;">Mode / Rate</th>
-                        <th style="width: 15%;">Value / Amount</th>
-                        <th>Description</th>
+                        <th style="width: 20%;">พารามิเตอร์</th>
+                        <th style="width: 10%;">ปีเริ่มต้น</th>
+                        <th style="width: 10%;">ปีสิ้นสุด / ระยะเวลา</th>
+                        <th style="width: 15%;">โหมด / อัตรา</th>
+                        <th style="width: 15%;">ค่า / จำนวนเงิน</th>
+                        <th>คำอธิบาย</th>
                         <th style="width: 40px;"></th>
                     </tr>
                 </thead>
@@ -100,7 +100,7 @@ class SimulationManager {
         `;
 
         if (this.events.length === 0) {
-            html += `<tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No events added. Click "Add Event" to start.</td></tr>`;
+            html += `<tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">ยังไม่มีเหตุการณ์จำลอง กด "เพิ่มเหตุการณ์" เพื่อเริ่มต้น</td></tr>`;
         } else {
             this.events.forEach(event => {
                 const isLoan = event.type === 'new_loan';
@@ -168,7 +168,7 @@ class SimulationManager {
 
             <div style="margin-top: 20px; text-align: right;">
                 <button class="btn btn-success" onclick="simulationApp.runSimulation()">
-                    <i class="fa-solid fa-play"></i> Run Scale Simulation
+                    <i class="fa-solid fa-play"></i> รันการจำลอง
                 </button>
             </div>
         </div>
@@ -218,7 +218,7 @@ class SimulationManager {
         let html = `
         <div class="card full-width">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h3><i class="fa-solid fa-chart-line"></i> Simulation Results Comparison</h3>
+                <h3><i class="fa-solid fa-chart-line"></i> เปรียบเทียบผลลัพธ์การจำลอง</h3>
                 
                 <!-- View Toggle -->
                 <div class="view-toggle">
