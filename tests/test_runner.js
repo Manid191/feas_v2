@@ -173,4 +173,8 @@ class TestRunner {
         this.assert(year9Tax > 0, `Year 9 Tax should be > 0 (Got: ${year9Tax.toFixed(2)})`);
     }
 }
-window.TestRunner = new TestRunner();
+if (typeof window !== 'undefined') {
+    window.TestRunner = new TestRunner();
+} else if (typeof globalThis !== 'undefined') {
+    globalThis.TestRunner = new TestRunner();
+}

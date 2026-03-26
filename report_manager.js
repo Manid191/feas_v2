@@ -8,7 +8,7 @@ class ReportManager {
             this.container.innerHTML = `<div class="placeholder-state">
                 <i class="fa-solid fa-triangle-exclamation"></i>
                 <h2>No Data Available</h2>
-                <p>Please configure parameters and calculate first.</p>
+                <p>กรุณาตั้งค่าพารามิเตอร์และกดคำนวณก่อน</p>
             </div>`;
             return;
         }
@@ -54,8 +54,8 @@ class ReportManager {
             <div class="report-container fade-in">
                 <div class="report-header">
                     <div>
-                        <h2><i class="fa-solid fa-file-contract"></i> Feasibility Study Report</h2>
-                        <p class="report-date">Generated on: ${date}</p>
+                        <h2><i class="fa-solid fa-file-contract"></i> รายงานการศึกษาความเป็นไปได้ของโครงการ</h2>
+                        <p class="report-date">ออกรายงานเมื่อ: ${date}</p>
                     </div>
                     <button class="btn btn-primary no-print" onclick="window.print()">
                         <i class="fa-solid fa-print"></i> Print / Save PDF
@@ -63,7 +63,7 @@ class ReportManager {
                 </div>
 
                 <div class="report-section">
-                    <h3>1. Project Parameters</h3>
+                    <h3>1. พารามิเตอร์โครงการ</h3>
                     <div class="input-grid print-grid">
                         <div class="card">
                             <h4>Technical</h4>
@@ -87,12 +87,18 @@ class ReportManager {
                 </div>
 
                 <div class="report-section">
-                    <h3>2. Financial Summary</h3>
+                    <h3>2. สรุปผลทางการเงิน</h3>
                     <div class="kpi-grid print-kpi">
                         <div class="kpi-card">
                             <div class="kpi-content">
                                 <span>Project NPV</span>
                                 <h3 class="${results.npv >= 0 ? 'text-success' : 'text-danger'}">${this.formatCurrency(results.npv)}</h3>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span>Equity NPV</span>
+                                <h3 class="${results.npvEquity >= 0 ? 'text-success' : 'text-danger'}">${this.formatCurrency(results.npvEquity)}</h3>
                             </div>
                         </div>
                         <div class="kpi-card">
