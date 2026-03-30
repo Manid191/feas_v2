@@ -7,7 +7,7 @@ class ReportManager {
         if (!inputs || !results) {
             this.container.innerHTML = `<div class="placeholder-state">
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <h2>No Data Available</h2>
+                <h2>ยังไม่มีข้อมูล</h2>
                 <p>กรุณาตั้งค่าพารามิเตอร์และกดคำนวณก่อน</p>
             </div>`;
             return;
@@ -58,7 +58,7 @@ class ReportManager {
                         <p class="report-date">ออกรายงานเมื่อ: ${date}</p>
                     </div>
                     <button class="btn btn-primary no-print" onclick="window.print()">
-                        <i class="fa-solid fa-print"></i> Print / Save PDF
+                        <i class="fa-solid fa-print"></i> พิมพ์ / บันทึก PDF
                     </button>
                 </div>
 
@@ -66,16 +66,16 @@ class ReportManager {
                     <h3>1. พารามิเตอร์โครงการ</h3>
                     <div class="input-grid print-grid">
                         <div class="card">
-                            <h4>Technical</h4>
-                            <p><strong>Capacity:</strong> ${inputs.capacity} MW</p>
-                            <p><strong>Project Duration:</strong> ${inputs.projectYears} Years</p>
-                            <p><strong>Operating Hours:</strong> ${inputs.hoursPerDay} hrs/day</p>
+                            <h4>ข้อมูลทางเทคนิค</h4>
+                            <p><strong>กำลังการผลิต:</strong> ${inputs.capacity} ${inputs.modelType === 'SOLAR' ? 'kWp' : 'MW'}</p>
+                            <p><strong>อายุโครงการ:</strong> ${inputs.projectYears} ปี</p>
+                            <p><strong>ชั่วโมงเดินเครื่อง:</strong> ${inputs.hoursPerDay} ชม./วัน</p>
                         </div>
                         <div class="card">
-                            <h4>Financial Structure</h4>
-                            <p><strong>Debt Ratio:</strong> ${inputs.finance.debtRatio}%</p>
-                            <p><strong>Interest Rate:</strong> ${inputs.finance.interestRate}%</p>
-                            <p><strong>Loan Term:</strong> ${inputs.finance.loanTerm} Years</p>
+                            <h4>โครงสร้างทางการเงิน</h4>
+                            <p><strong>สัดส่วนหนี้:</strong> ${inputs.finance.debtRatio}%</p>
+                            <p><strong>อัตราดอกเบี้ย:</strong> ${inputs.finance.interestRate}%</p>
+                            <p><strong>ระยะเวลากู้:</strong> ${inputs.finance.loanTerm} ปี</p>
                         </div>
                         <div class="card">
                             <h4>Assumptions</h4>

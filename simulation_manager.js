@@ -223,10 +223,10 @@ class SimulationManager {
                 <!-- View Toggle -->
                 <div class="view-toggle">
                     <input type="radio" name="simViewMode" id="viewEquity" autocomplete="off" ${viewMode === 'equity' ? 'checked' : ''} onchange="simulationApp.switchView('equity')">
-                    <label for="viewEquity"><i class="fa-solid fa-chart-pie"></i> Equity View</label>
+                    <label for="viewEquity"><i class="fa-solid fa-chart-pie"></i> มุมมองผู้ถือหุ้น</label>
 
                     <input type="radio" name="simViewMode" id="viewProject" autocomplete="off" ${viewMode === 'project' ? 'checked' : ''} onchange="simulationApp.switchView('project')">
-                    <label for="viewProject"><i class="fa-solid fa-industry"></i> Project View</label>
+                    <label for="viewProject"><i class="fa-solid fa-industry"></i> มุมมองโครงการ</label>
                 </div>
             </div>
             
@@ -274,13 +274,13 @@ class SimulationManager {
             <!-- Cash Flow Line Charts -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; padding: 10px;">
                 <div>
-                    <h4 style="margin-bottom: 10px; text-align: center;"><i class="fa-solid fa-money-bill-trend-up"></i> Annual Equity Cash Flow</h4>
+                    <h4 style="margin-bottom: 10px; text-align: center;"><i class="fa-solid fa-money-bill-trend-up"></i> กระแสเงินสดผู้ถือหุ้นรายปี</h4>
                     <div style="height: 300px;">
                         <canvas id="simCashFlowChart"></canvas>
                     </div>
                 </div>
                 <div>
-                    <h4 style="margin-bottom: 10px; text-align: center;"><i class="fa-solid fa-piggy-bank"></i> Cumulative Equity Cash Flow</h4>
+                    <h4 style="margin-bottom: 10px; text-align: center;"><i class="fa-solid fa-piggy-bank"></i> กระแสเงินสดผู้ถือหุ้นสะสม</h4>
                     <div style="height: 300px;">
                         <canvas id="simCumCashFlowChart"></canvas>
                     </div>
@@ -291,7 +291,7 @@ class SimulationManager {
 
             <!-- Net Profit Chart (Restored) -->
             <div style="margin-top: 20px; padding: 10px;">
-                <h4 style="margin-bottom: 10px; text-align: center;"><i class="fa-solid fa-chart-line"></i> Annual Net Profit (Net Income)</h4>
+                <h4 style="margin-bottom: 10px; text-align: center;"><i class="fa-solid fa-chart-line"></i> กำไรสุทธิรายปี</h4>
                 <div style="height: 300px;">
                     <canvas id="simNetProfitChart"></canvas>
                 </div>
@@ -386,7 +386,7 @@ class SimulationManager {
             new Chart(irrCtx, {
                 type: 'bar',
                 data: {
-                    labels: ['Base Case' + labelSuffix, 'Simulation' + labelSuffix],
+                    labels: ['กรณีฐาน' + labelSuffix, 'ผลการจำลอง' + labelSuffix],
                     datasets: [
                         {
                             label: 'IRR %',
@@ -427,7 +427,7 @@ class SimulationManager {
                     labels: years,
                     datasets: [
                         {
-                            label: 'Base' + labelSuffix,
+                            label: 'กรณีฐาน' + labelSuffix,
                             data: baseCF,
                             borderColor: 'rgba(54, 162, 235, 1)',
                             backgroundColor: 'rgba(54, 162, 235, 0.1)',
@@ -435,7 +435,7 @@ class SimulationManager {
                             tension: 0.3
                         },
                         {
-                            label: 'Sim' + labelSuffix,
+                            label: 'จำลอง' + labelSuffix,
                             data: simCF,
                             borderColor: 'rgba(255, 99, 132, 1)',
                             backgroundColor: 'rgba(255, 99, 132, 0.1)',
@@ -464,7 +464,7 @@ class SimulationManager {
                     labels: years,
                     datasets: [
                         {
-                            label: 'Base Cumulative' + labelSuffix,
+                            label: 'สะสม (กรณีฐาน)' + labelSuffix,
                             data: baseCumStr,
                             borderColor: 'rgba(54, 162, 235, 1)',
                             borderDash: [5, 5],
@@ -472,7 +472,7 @@ class SimulationManager {
                             tension: 0.3
                         },
                         {
-                            label: 'Sim Cumulative' + labelSuffix,
+                            label: 'สะสม (จำลอง)' + labelSuffix,
                             data: simCumStr,
                             borderColor: 'rgba(255, 99, 132, 1)',
                             borderDash: [5, 5],
