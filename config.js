@@ -81,12 +81,20 @@ window.AppConfig = {
         hoursPerDay: 24,
         daysPerYear: 334,
         revenue: {
-            // Power
+            // Power / Solar Tariffs
+            tariffType: 'TOU',
             peakRate: 4.5,
             peakHours: 13,
             offPeakRate: 2.6,
             adderPrice: 0,
             adderYears: 7,
+
+            baseRate: 2.6,
+            ftRate: 0.4,
+            serviceFee: 312,
+            holidays: 115,
+            peaMeaRate: 4.5,
+            discountPercent: 10,
 
             // Water
             unitPrice: 15,

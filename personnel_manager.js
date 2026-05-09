@@ -107,7 +107,7 @@ class PersonnelManager {
                             <button class="btn btn-primary" onclick="personnelApp.add()">
                                 <i class="fa-solid fa-plus"></i> Add
                             </button>
-                            <button class="btn btn-secondary" onclick="inputApps.userTriggerCalculate(); app.navigateTo('financials')">
+                            <button class="btn btn-success" onclick="window.inputApps.userTriggerCalculate()">
                                 <i class="fa-solid fa-calculator"></i> Calculate
                             </button>
                         </div>
