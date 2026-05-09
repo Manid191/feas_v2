@@ -90,18 +90,18 @@ class DashboardManager {
                             <h3 style="margin:0;"><i class="fa-solid fa-chart-pie"></i> แยกรายละเอียดค่าใช้จ่าย</h3>
                             
                             <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
-                                <label style="font-size: 0.85em;">From:</label>
+                                <label style="font-size: 0.85em;">จากปี:</label>
                                 <input type="number" id="expStartYear" class="input-compact" style="width: 50px;" value="1" min="1">
-                                <label style="font-size: 0.85em;">To:</label>
+                                <label style="font-size: 0.85em;">ถึงปี:</label>
                                 <input type="number" id="expEndYear" class="input-compact" style="width: 50px;" value="${results.inputs.projectYears}" min="1">
                                 
                                 <select id="expGroupMode" class="input-compact" style="width: 120px;">
-                                    <option value="detailed">Detailed Items</option>
-                                    <option value="major">Major Groups</option>
+                                    <option value="detailed">รายการละเอียด</option>
+                                    <option value="major">กลุ่มหลัก</option>
                                 </select>
 
                                 <button class="btn btn-primary btn-sm" onclick="window.dashboardApp.updateExpenseChart()">
-                                    Update
+                                    อัปเดต
                                 </button>
                             </div>
                         </div>
@@ -159,7 +159,7 @@ class DashboardManager {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Annual Project Cash Flow',
+                        label: 'กระแสเงินสดโครงการสุทธิรายปี',
                         data: results.cashFlows,
                         borderColor: 'rgb(54, 162, 235)', // Blue
                         backgroundColor: 'rgba(54, 162, 235, 0.1)',
@@ -170,7 +170,7 @@ class DashboardManager {
                         order: 2
                     },
                     {
-                        label: 'Annual Equity Cash Flow',
+                        label: 'กระแสเงินสดส่วนของผู้ถือหุ้นรายปี',
                         data: results.equityCashFlows,
                         borderColor: 'rgb(46, 204, 113)', // Green
                         backgroundColor: 'rgba(46, 204, 113, 0.1)',
@@ -181,7 +181,7 @@ class DashboardManager {
                         order: 2
                     },
                     {
-                        label: 'OPEX',
+                        label: 'ค่าใช้จ่ายดำเนินงาน (OPEX)',
                         data: normalizeAnnual(results.details.annualOpex, true),
                         backgroundColor: 'rgba(255, 159, 64, 0.45)', // Orange
                         borderColor: 'rgba(255, 159, 64, 1)',
@@ -191,7 +191,7 @@ class DashboardManager {
                         order: 4
                     },
                     {
-                        label: 'Principal Repayment',
+                        label: 'ชำระคืนเงินต้น',
                         data: normalizeAnnual(results.details.annualPrincipal, true),
                         backgroundColor: 'rgba(244, 67, 54, 0.45)', // Red
                         borderColor: 'rgba(244, 67, 54, 1)',
@@ -201,7 +201,7 @@ class DashboardManager {
                         order: 4
                     },
                     {
-                        label: 'Interest Expense',
+                        label: 'ดอกเบี้ยจ่าย',
                         data: normalizeAnnual(results.details.annualInterest, true),
                         backgroundColor: 'rgba(153, 102, 255, 0.45)', // Purple
                         borderColor: 'rgba(153, 102, 255, 1)',
@@ -211,7 +211,7 @@ class DashboardManager {
                         order: 4
                     },
                     {
-                        label: 'Corporate Tax',
+                        label: 'ภาษีเงินได้นิติบุคคล',
                         data: normalizeAnnual(results.details.annualTax, true),
                         backgroundColor: 'rgba(201, 203, 207, 0.55)', // Grey
                         borderColor: 'rgba(120, 120, 120, 1)',
@@ -221,7 +221,7 @@ class DashboardManager {
                         order: 4
                     },
                     {
-                        label: 'Cumulative Project Cash Flow',
+                        label: 'กระแสเงินสดโครงการสะสม',
                         data: results.cumulativeCashFlows,
                         borderColor: 'rgb(0, 102, 255)',
                         backgroundColor: 'rgba(0, 102, 255, 0.08)',
@@ -233,7 +233,7 @@ class DashboardManager {
                         order: 1
                     },
                     {
-                        label: 'Cumulative Equity Cash Flow',
+                        label: 'กระแสเงินสดผู้ถือหุ้นสะสม',
                         data: results.cumulativeEquityCashFlows,
                         borderColor: 'rgb(0, 150, 136)',
                         backgroundColor: 'rgba(0, 150, 136, 0.08)',
@@ -443,10 +443,10 @@ class DashboardManager {
                             }
                         }
                     },
-                    title: {
-                        display: true,
-                        text: `Expenses: Year ${startYear} - ${endYear} (${mode === 'major' ? 'Major Groups' : 'Detailed'})`
-                    }
+                            title: {
+                                display: true,
+                                text: `ค่าใช้จ่าย: ปี ${startYear} - ${endYear} (${mode === 'major' ? 'กลุ่มหลัก' : 'รายละเอียด'})`
+                            }
                 }
             }
         });

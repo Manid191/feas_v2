@@ -186,8 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!window.hasCalculated) {
                     document.getElementById('content-area').innerHTML = `<div class="placeholder-state">
                         <i class="fa-solid fa-flask"></i>
-                        <h2>ยังไม่ได้คำนวณ Base Case</h2>
-                        <p>กรุณาไปที่ <strong>พารามิเตอร์</strong> และกด <strong>คำนวณ</strong> ก่อน เพื่อสร้างค่า Base Case</p>
+                        <h2>ยังไม่ได้คำนวณกรณีฐาน</h2>
+                        <p>กรุณาไปที่ <strong>พารามิเตอร์</strong> และกด <strong>คำนวณ</strong> ก่อน เพื่อสร้างค่ากรณีฐาน</p>
                     </div>`;
                 } else if (window.simulationApp) {
                     window.simulationApp.init();

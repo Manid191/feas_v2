@@ -4,7 +4,7 @@
  */
 window.AppConfig = {
     // Increment this to force a hard reset on client browsers
-    appVersion: '5.2',
+    appVersion: '5.3',
 
     // Business Models & Configurations
     models: {
